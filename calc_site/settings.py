@@ -10,10 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env explicitly from the project root
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -39,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'calculator',
+    'agent',
 ]
 
 MIDDLEWARE = [
@@ -117,6 +123,26 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT.mkdir(exist_ok=True)
+
+# --- Media & Session Lifecycle / Retention Settings ---
+MEDIA_RETENTION_HOURS = int(os.environ.get("MEDIA_RETENTION_HOURS", 12))
+MEDIA_CLEANUP_INTERVAL_MINUTES = int(os.environ.get("MEDIA_CLEANUP_INTERVAL_MINUTES", 30))
+ENABLE_BACKGROUND_CLEANUP = os.environ.get("ENABLE_BACKGROUND_CLEANUP", "true").lower() in ("1", "true", "yes")
+
+# --- Excel Agent settings ---
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite")
+GEMINI_FALLBACK_MODELS = [
+    m.strip() for m in os.environ.get(
+        "GEMINI_FALLBACK_MODELS", "gemini-3.1-flash-lite,gemini-3.5-flash-lite"
+    ).split(",") if m.strip()
+]
+MAX_CODEGEN_RETRIES = 3
+SANDBOX_TIMEOUT_SECONDS = 15
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
