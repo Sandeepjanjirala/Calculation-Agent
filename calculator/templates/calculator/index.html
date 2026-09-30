@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8-Stage Calculation Engine</title>
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="{% static 'calculator/css/style.css' %}">
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="badge-tag">
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        Calculation Specification Engine
+      </div>
+      <h1 class="app-title">8-Stage Calculation Dashboard</h1>
+      <p class="app-subtitle">
+        Strict adherence to the 8-stage business logic specification with automatic second-value extraction, pattern analysis, and stage audit.
+      </p>
+    </header>
+
+    <!-- Error Banner -->
+    <div id="error-alert" class="alert-banner alert-danger"></div>
+
+    <!-- Input Form Section -->
+    <section class="glass-panel">
+      <div class="toolbar">
+        <div class="toolbar-title">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Input Values Configuration
+        </div>
+        <div class="btn-group">
+          <button type="button" id="btn-clear" class="btn btn-secondary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Clear Fields
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Guidance Callout -->
+      <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-sm); padding: 0.85rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: #c7d2fe; display: flex; align-items: flex-start; gap: 0.65rem;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0; margin-top: 0.1rem; color: #818cf8;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div>
+          <strong>Paste or Upload:</strong> Paste your values in either horizontal format (e.g. <code>1_2 1_3 2_1 2_1 3_1</code>) or vertical format, or choose a <code>.txt</code> text file. The system automatically calculates using the <strong>2nd value</strong> of each pair.
+        </div>
+      </div>
+
+      <form id="calc-form">
+        {% csrf_token %}
+
+        <div class="grid-2col">
+          <!-- Main File Card -->
+          <div class="input-card" style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+              <label class="input-label" for="main_input" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #f8fafc;">
+                📄 Main File Values
+              </label>
+              <label class="file-upload-btn" style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.3rem 0.65rem; border-radius: 6px; transition: var(--transition);">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Choose .txt File
+                <input type="file" id="main_file_picker" accept=".txt" style="display: none;">
+              </label>
+            </div>
+            
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+              Paste row or column (e.g. <code>1_2 1_3 2_1 2_1 3_1</code>)
+            </div>
+
+            <textarea id="main_input" class="code-textarea" placeholder="Paste Main File values here&#10;e.g. 1_2   1_3   2_1   2_1   3_1&#10;(or separated by newlines)"></textarea>
+            
+            <div id="main-preview" style="margin-top: 0.5rem; font-size: 0.82rem; font-family: var(--font-mono); min-height: 1.4rem;"></div>
+          </div>
+
+          <!-- Calculation File Card -->
+          <div class="input-card" style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+              <label class="input-label" for="calc_input" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #f8fafc;">
+                📊 Calculation File Values
+              </label>
+              <label class="file-upload-btn" style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.3rem 0.65rem; border-radius: 6px; transition: var(--transition);">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Choose .txt File
+                <input type="file" id="calc_file_picker" accept=".txt" style="display: none;">
+              </label>
+            </div>
+
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+              Paste row or column (e.g. <code>2_2 1_2 2_2 2_3 2_1</code>)
+            </div>
+
+            <textarea id="calc_input" class="code-textarea" placeholder="Paste Calculation File values here&#10;e.g. 2_2   1_2   2_2   2_3   2_1&#10;(or separated by newlines)"></textarea>
+            
+            <div id="calc-preview" style="margin-top: 0.5rem; font-size: 0.82rem; font-family: var(--font-mono); min-height: 1.4rem;"></div>
+          </div>
+        </div>
+
+        <!-- Stage 7 Parameter Controls -->
+        <div class="stage7-config">
+          <div class="stage7-title">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+            </svg>
+            Stage 7: Vertical Comparison Parameters (|Main - Calculation|)
+          </div>
+          <div class="stage7-grid">
+            <div class="input-group">
+              <label class="input-label" for="stage7_main">Main Value</label>
+              <input type="number" id="stage7_main" class="number-input" value="1">
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="stage7_calc">Calculation Value</label>
+              <input type="number" id="stage7_calc" class="number-input" value="1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Calculate Trigger Button -->
+        <div style="margin-top: 2rem; text-align: center;">
+          <button type="submit" id="btn-calculate" class="btn btn-primary" style="font-size: 1.1rem; font-weight: 700; padding: 0.95rem 3rem; width: 100%; max-width: 420px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45);">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Submit & Calculate Total Points
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results-section">
+      <!-- Hero Scorecard -->
+      <div class="hero-scorecard">
+        <div class="hero-label">Final Aggregated Score</div>
+        <div id="hero-total-score" class="hero-score">0</div>
+        <div class="hero-sub">Points Accumulated Across All 7 Stages</div>
+
+        <div class="extracted-pills">
+          <div class="extracted-pill">
+            <strong>Main Extracted:</strong> <span id="extracted-main-vals">-</span>
+          </div>
+          <div class="extracted-pill">
+            <strong>Calc Extracted:</strong> <span id="extracted-calc-vals">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action bar for results -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <h2 style="font-family: var(--font-display); font-size: 1.5rem;">Stage-by-Stage Audit Breakdown</h2>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="button" id="btn-download-files" class="btn btn-secondary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Download Text Files (.txt)
+          </button>
+          <button type="button" id="btn-copy-report" class="btn btn-secondary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+            </svg>
+            Copy Audit Report
+          </button>
+        </div>
+      </div>
+
+      <!-- 7 Stage Cards Grid -->
+      <div id="stages-grid" class="stages-grid"></div>
+
+      <!-- Stage 8 Equation Panel -->
+      <div class="glass-panel" style="margin-top: 2rem; text-align: center; border-color: rgba(99, 102, 241, 0.4);">
+        <div style="font-family: var(--font-display); font-size: 1.1rem; color: #a5b4fc; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          Stage 8: Final Total Equation
+        </div>
+        <div id="stage8-equation" style="font-family: var(--font-mono); font-size: 1.35rem; font-weight: 700; color: #ffffff;">
+          -
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-notification" class="toast"></div>
+
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Application Script -->
+  <script src="{% static 'calculator/js/app.js' %}"></script>
+</body>
+</html>
