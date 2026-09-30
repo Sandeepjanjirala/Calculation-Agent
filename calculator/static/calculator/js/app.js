@@ -67,93 +67,10 @@ $(document).ready(function () {
     }, 30);
   });
 
-  // Handle .txt file picker inputs
-  function setupFilePicker(pickerId, targetTextareaId) {
-    $(pickerId).on("change", function (e) {
-      const file = e.target.files && e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (evt) {
-          $(targetTextareaId).val(evt.target.result);
-          $(targetTextareaId).trigger("input");
-          showToast(`Loaded ${file.name}`);
-        };
-        reader.readAsText(file);
-      }
-    });
-  }
-  setupFilePicker("#main_file_picker", "#main_input");
-  setupFilePicker("#calc_file_picker", "#calc_input");
-
-  // Drag and drop support on textareas
-  function setupDragDrop(textareaId) {
-    const $el = $(textareaId);
-    $el.on("dragover dragenter", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      $el.css("border-color", "#6366f1");
-    });
-    $el.on("dragleave drop", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      $el.css("border-color", "");
-    });
-    $el.on("drop", function (e) {
-      const files = e.originalEvent.dataTransfer && e.originalEvent.dataTransfer.files;
-      if (files && files.length > 0) {
-        const file = files[0];
-        const reader = new FileReader();
-        reader.onload = function (evt) {
-          $el.val(evt.target.result);
-          $el.trigger("input");
-          showToast(`Loaded ${file.name}`);
-        };
-        reader.readAsText(file);
-      }
-    });
-  }
-  setupDragDrop("#main_input");
-  setupDragDrop("#calc_input");
-
-  // Download Text Files (.txt) helper
-  function downloadTextFile(filename, content) {
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }
-
-  $("#btn-download-files").on("click", function () {
-    const mainText = $("#main_input").val().trim();
-    const calcText = $("#calc_input").val().trim();
-
-    if (!mainText && !calcText) {
-      showError("No values entered to download.");
-      return;
-    }
-
-    if (mainText) {
-      downloadTextFile("main_file.txt", mainText);
-    }
-    if (calcText) {
-      setTimeout(function () {
-        downloadTextFile("calc_file.txt", calcText);
-      }, 300);
-    }
-    showToast("Downloaded text files (main_file.txt, calc_file.txt)!");
-  });
-
   // Clear inputs
   $("#btn-clear").on("click", function () {
     $("#main_input").val("");
     $("#calc_input").val("");
-    $("#main_file_picker").val("");
-    $("#calc_file_picker").val("");
     $("#main-preview").html("");
     $("#calc-preview").html("");
     $("#results-section").fadeOut();
@@ -177,8 +94,8 @@ $(document).ready(function () {
     const payload = {
       main_input: mainText,
       calc_input: calcText,
-      stage7_main: parseInt($("#stage7_main").val(), 10) || 1,
-      stage7_calc: parseInt($("#stage7_calc").val(), 10) || 1
+      stage7_main: 1,
+      stage7_calc: 1
     };
 
     // Show loading state
