@@ -6,31 +6,47 @@
 $(document).ready(function () {
   let latestResultData = null;
 
-  // Parse Excel / Text tokens and extract 2nd value (B from A_B or A-B)
+  // Parse Excel / Text tokens and extract 2nd value (B from A_B, A-B, A _ B, etc.)
   function parseTokens(text) {
     if (!text || !text.trim()) return [];
-    // Split by whitespace (including tabs, newlines, spaces) or commas
-    const rawTokens = text.trim().split(/[\s,]+/);
+
+    let cleaned = text.trim();
+
+    // 1. Normalize explicit pairs with spaces around delimiter (e.g., "2 _ 7" -> "2_7")
+    cleaned = cleaned.replace(/(\d+)\s*[_\-\/\:\|]\s*(\d+)/g, '$1_$2');
+
+    // 2. Split by whitespace (including tabs, newlines, spaces) or commas/semicolons
+    const rawTokens = cleaned.split(/[\s,;]+/);
     const extracted = [];
 
     for (let raw of rawTokens) {
       if (!raw) continue;
-      const t = raw.replace(/^["']|["']$/g, ''); // strip quotes
+      const t = raw.replace(/^["']|["']$/g, '').trim(); // strip quotes
       if (!t) continue;
 
-      // Match A_B, A-B, or A/B
-      const m = t.match(/^\d+[_\-\/](\d+)$/);
+      // Match A_B (or A-B, etc. normalized to A_B)
+      const m = t.match(/^\d+[_\-\/\:\|](\d+)$/);
       if (m) {
         extracted.push(parseInt(m[1], 10));
       } else if (/^\d+$/.test(t)) {
         extracted.push(parseInt(t, 10));
       } else {
-        const parts = t.split(/[_\-\/]/);
+        const parts = t.split(/[_\-\/\:\|]/);
         if (parts.length >= 2 && /^\d+$/.test(parts[1])) {
           extracted.push(parseInt(parts[1], 10));
         }
       }
     }
+
+    // Fallback/Future-proofing: If 10 raw numbers were extracted (e.g., 5 pairs of A B like "2 7 2 7 2 6 2 3 1 1")
+    if (extracted.length === 10) {
+      const pair2nd = [];
+      for (let i = 1; i < 10; i += 2) {
+        pair2nd.push(extracted[i]);
+      }
+      return pair2nd;
+    }
+
     return extracted;
   }
 
@@ -43,15 +59,34 @@ $(document).ready(function () {
       $prev.html("");
     } else if (vals.length === 5) {
       $prev.html(
-        `<span style="color:#34d399; font-weight:600;">✓ Extracted 2nd Values:</span> ` +
-        `<span style="color:#f1f5f9; background:rgba(16, 185, 129, 0.15); padding:2px 8px; border-radius:4px; border:1px solid rgba(16, 185, 129, 0.3); font-weight:700;">` +
+        `<span class="preview-success-title">✓ Extracted 2nd Values:</span> ` +
+        `<span class="preview-success-pill">` +
         `a=${vals[0]}, b=${vals[1]}, c=${vals[2]}, d=${vals[3]}, e=${vals[4]}</span>`
       );
     } else {
       $prev.html(
-        `<span style="color:#fbbf24;">Found ${vals.length} of 5 values: [${vals.join(", ")}]</span>`
+        `<span class="preview-warning-text">Found ${vals.length} of 5 values: [${vals.join(", ")}]</span>`
       );
     }
+  }
+
+  // Theme Switcher Logic (Default: Light/White Theme)
+  const savedTheme = localStorage.getItem("theme") || "light";
+  setTheme(savedTheme);
+
+  $("#theme-toggle").on("click", function () {
+    const currentTheme = $("html").attr("data-theme") === "dark" ? "dark" : "light";
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+  });
+
+  function setTheme(theme) {
+    if (theme === "dark") {
+      $("html").attr("data-theme", "dark");
+    } else {
+      $("html").attr("data-theme", "light");
+    }
+    localStorage.setItem("theme", theme);
   }
 
   // Setup live preview on inputs
@@ -71,6 +106,7 @@ $(document).ready(function () {
   $("#btn-clear").on("click", function () {
     $("#main_input").val("");
     $("#calc_input").val("");
+    $("#original_value_input").val("");
     $("#main-preview").html("");
     $("#calc-preview").html("");
     $("#results-section").fadeOut();
@@ -91,9 +127,11 @@ $(document).ready(function () {
       return;
     }
 
+    const origVal = $("#original_value_input").val();
     const payload = {
       main_input: mainText,
       calc_input: calcText,
+      original_value: origVal,
       stage7_main: 1,
       stage7_calc: 1
     };
@@ -131,7 +169,7 @@ $(document).ready(function () {
       },
       complete: function () {
         $btn.prop("disabled", false).html(
-          `<svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Run 8-Stage Calculation`
+          `<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Submit & Calculate Total Points`
         );
       }
     });
@@ -141,6 +179,23 @@ $(document).ready(function () {
   function renderResults(data) {
     const mv = data.main_vals;
     const cv = data.calc_vals;
+
+    // Render Original Value 0.85% Adjustment Card (The Two Answers)
+    if (data.original_value_adj) {
+      const adj = data.original_value_adj;
+      $("#orig-val-display").text(adj.original_value);
+      $("#orig-adj-display").text(`±${adj.adjustment}`);
+
+      $("#ans-addition-val").text(adj.addition_result.toFixed(2));
+      $("#ans-addition-formula").text(`${adj.original_value} + ${adj.adjustment} = ${adj.addition_result.toFixed(2)}`);
+
+      $("#ans-subtraction-val").text(adj.subtraction_result.toFixed(2));
+      $("#ans-subtraction-formula").text(`${adj.original_value} - ${adj.adjustment} = ${adj.subtraction_result.toFixed(2)}`);
+
+      $("#orig-val-results-card").fadeIn();
+    } else {
+      $("#orig-val-results-card").hide();
+    }
 
     // Extracted pills
     $("#extracted-main-vals").text(`a=${mv[0]}, b=${mv[1]}, c=${mv[2]}, d=${mv[3]}, e=${mv[4]}`);

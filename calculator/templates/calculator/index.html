@@ -1,10 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>8-Stage Calculation Engine</title>
+  <title>Calculation Engine</title>
   
   <!-- Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,9 +21,20 @@
     <nav class="top-nav-bar">
       <div class="nav-brand">
         <span class="nav-indicator"></span>
-        <span class="nav-brand-title">Calculation Specification Engine</span>
+        <span class="nav-brand-title">Calculation Engine</span>
       </div>
       <div class="nav-actions">
+        <!-- Theme Switcher Button -->
+        <button type="button" id="theme-toggle" class="btn-theme-toggle" title="Toggle Light/Dark Theme">
+          <svg class="sun-icon" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <svg class="moon-icon" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+          <span class="theme-btn-label">Theme</span>
+        </button>
+
         <a href="/agent/" class="btn-ai-agent" id="nav-btn-ai-agent" title="Open Excel AI Agent">
           <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -36,16 +47,7 @@
 
     <!-- Header -->
     <header class="app-header">
-      <div class="badge-tag">
-        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-        </svg>
-        Calculation Specification Engine
-      </div>
-      <h1 class="app-title">8-Stage Calculation Dashboard</h1>
-      <p class="app-subtitle">
-        Strict adherence to the 8-stage business logic specification with automatic second-value extraction, pattern analysis, and stage audit.
-      </p>
+      <h1 class="app-title">Calculation Dashboard</h1>
     </header>
 
     <!-- Error Banner -->
@@ -71,10 +73,10 @@
       </div>
 
       <!-- Quick Guidance Callout -->
-      <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-sm); padding: 0.85rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: #c7d2fe; display: flex; align-items: flex-start; gap: 0.65rem;">
-        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0; margin-top: 0.1rem; color: #818cf8;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="guidance-callout">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="guidance-icon"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <div>
-          <strong>Paste Values:</strong> Paste your values in either horizontal format (e.g. <code>1_2 1_3 2_1 2_1 3_1</code>) or vertical format. The system automatically calculates using the <strong>2nd value</strong> of each pair.
+          <strong>Paste Values:</strong> Paste your values in either horizontal format or vertical format. The system automatically calculates using the <strong>2nd value</strong> of each pair.
         </div>
       </div>
 
@@ -83,43 +85,48 @@
 
         <div class="grid-2col">
           <!-- Main File Card -->
-          <div class="input-card" style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="margin-bottom: 0.65rem;">
-              <label class="input-label" for="main_input" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #f8fafc;">
+          <div class="input-card">
+            <div class="card-header-label">
+              <label class="input-label" for="main_input">
                 📄 Main File Values
               </label>
             </div>
-            
-            <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-              Paste row or column (e.g. <code>1_2 1_3 2_1 2_1 3_1</code>)
-            </div>
 
-            <textarea id="main_input" class="code-textarea" placeholder="Paste Main File values here&#10;e.g. 1_2   1_3   2_1   2_1   3_1&#10;(or separated by newlines)"></textarea>
+            <textarea id="main_input" class="code-textarea"></textarea>
             
-            <div id="main-preview" style="margin-top: 0.5rem; font-size: 0.82rem; font-family: var(--font-mono); min-height: 1.4rem;"></div>
+            <div id="main-preview" class="live-preview-box"></div>
           </div>
 
           <!-- Calculation File Card -->
-          <div class="input-card" style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="margin-bottom: 0.65rem;">
-              <label class="input-label" for="calc_input" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #f8fafc;">
+          <div class="input-card">
+            <div class="card-header-label">
+              <label class="input-label" for="calc_input">
                 📊 Calculation File Values
               </label>
             </div>
 
-            <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-              Paste row or column (e.g. <code>2_2 1_2 2_2 2_3 2_1</code>)
-            </div>
-
-            <textarea id="calc_input" class="code-textarea" placeholder="Paste Calculation File values here&#10;e.g. 2_2   1_2   2_2   2_3   2_1&#10;(or separated by newlines)"></textarea>
+            <textarea id="calc_input" class="code-textarea"></textarea>
             
-            <div id="calc-preview" style="margin-top: 0.5rem; font-size: 0.82rem; font-family: var(--font-mono); min-height: 1.4rem;"></div>
+            <div id="calc-preview" class="live-preview-box"></div>
+          </div>
+        </div>
+
+        <!-- Original Value Input Card -->
+        <div class="input-card" style="margin-top: 1.25rem;">
+          <div class="card-header-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <label class="input-label" for="original_value_input">
+              🏷️ Original Value (0.85% Adjustment Calculator)
+            </label>
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Step 1: 0.85% Adjustment | Step 2: Addition (+) | Step 3: Subtraction (-)</span>
+          </div>
+          <div style="margin-top: 0.25rem;">
+            <input type="number" step="any" id="original_value_input" class="code-textarea" style="height: 48px; padding: 0.65rem 1rem; font-size: 1.05rem; font-weight: 600;" value="">
           </div>
         </div>
 
         <!-- Calculate Trigger Button -->
-        <div style="margin-top: 2rem; text-align: center;">
-          <button type="submit" id="btn-calculate" class="btn btn-primary" style="font-size: 1.1rem; font-weight: 700; padding: 0.95rem 3rem; width: 100%; max-width: 420px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45);">
+        <div class="submit-container">
+          <button type="submit" id="btn-calculate" class="btn btn-primary btn-submit-calc">
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
@@ -131,6 +138,48 @@
 
     <!-- Results Section -->
     <section id="results-section">
+      <!-- Original Value 0.85% Adjustment Results Card (Two Answers) -->
+      <div id="orig-val-results-card" class="glass-panel" style="margin-bottom: 2rem; border-color: var(--accent-primary);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <span class="stage-number" style="background: var(--accent-success-bg); color: var(--accent-success);">0.85% Adjustment Rule</span>
+            <h3 style="font-family: var(--font-display); font-size: 1.35rem; margin-top: 0.25rem; color: var(--text-primary);">Original Value Results</h3>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-secondary); background: var(--details-bg); padding: 0.5rem 1.1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            Original Value: <strong id="orig-val-display" style="color: var(--text-primary); font-size: 1.05rem;">-</strong> &nbsp;|&nbsp; 
+            Adjustment (0.85%): <strong id="orig-adj-display" style="color: var(--accent-primary); font-size: 1.05rem;">-</strong>
+          </div>
+        </div>
+
+        <!-- The Two Answers Display Grid -->
+        <div class="grid-2col" style="gap: 1.25rem;">
+          <!-- Answer 1: Addition Result -->
+          <div style="background: var(--details-bg); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); padding: 1.25rem; text-align: center;">
+            <div style="font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-success); letter-spacing: 0.05em; margin-bottom: 0.35rem;">
+              Answer 1 — Addition Result (+0.85%)
+            </div>
+            <div id="ans-addition-val" style="font-family: var(--font-display); font-size: 2.75rem; font-weight: 900; color: var(--accent-success); margin-bottom: 0.25rem;">
+              -
+            </div>
+            <div id="ans-addition-formula" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-secondary);">
+              -
+            </div>
+          </div>
+
+          <!-- Answer 2: Subtraction Result -->
+          <div style="background: var(--details-bg); border: 2px solid var(--border-active); border-radius: var(--radius-md); padding: 1.25rem; text-align: center;">
+            <div style="font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-primary); letter-spacing: 0.05em; margin-bottom: 0.35rem;">
+              Answer 2 — Subtraction Result (-0.85%)
+            </div>
+            <div id="ans-subtraction-val" style="font-family: var(--font-display); font-size: 2.75rem; font-weight: 900; color: var(--accent-primary); margin-bottom: 0.25rem;">
+              -
+            </div>
+            <div id="ans-subtraction-formula" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-secondary);">
+              -
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- Hero Scorecard -->
       <div class="hero-scorecard">
         <div class="hero-label">Final Aggregated Score</div>
@@ -148,9 +197,9 @@
       </div>
 
       <!-- Action bar for results -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
-        <h2 style="font-family: var(--font-display); font-size: 1.5rem;">Stage-by-Stage Audit Breakdown</h2>
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <div class="audit-action-bar">
+        <h2 class="audit-title">Stage-by-Stage Audit Breakdown</h2>
+        <div class="audit-actions">
           <button type="button" id="btn-copy-report" class="btn btn-secondary">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
@@ -164,11 +213,11 @@
       <div id="stages-grid" class="stages-grid"></div>
 
       <!-- Stage 8 Equation Panel -->
-      <div class="glass-panel" style="margin-top: 2rem; text-align: center; border-color: rgba(99, 102, 241, 0.4);">
-        <div style="font-family: var(--font-display); font-size: 1.1rem; color: #a5b4fc; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+      <div class="glass-panel equation-panel">
+        <div class="equation-label">
           Stage 8: Final Total Equation
         </div>
-        <div id="stage8-equation" style="font-family: var(--font-mono); font-size: 1.35rem; font-weight: 700; color: #ffffff;">
+        <div id="stage8-equation" class="equation-display">
           -
         </div>
       </div>

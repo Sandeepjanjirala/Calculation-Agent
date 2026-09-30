@@ -9,7 +9,7 @@ Features:
 """
 
 import argparse
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 
 
 import re
@@ -17,33 +17,46 @@ import re
 def parse_source_lines(lines_or_text: Union[str, List[str]]) -> List[int]:
     """
     Extracts the second values from any Excel copy-paste format:
-    - Underscore: 1_2 -> 2
-    - Hyphen: 1-2 -> 2
-    - Slash: 1/2 -> 2
-    - Separated by tabs, spaces, newlines, or commas
+    - Underscore: 1_2 or 1 _ 2 -> 2
+    - Hyphen: 1-2 or 1 - 2 -> 2
+    - Slash: 1/2 or 1 / 2 -> 2
+    - Colon/Pipe: 1:2 or 1 | 2 -> 2
+    - Separated by tabs, spaces, newlines, commas, or semicolons
     - Single numbers: 2 -> 2
+    - 10 raw numbers (5 pairs of A B): takes 2nd value of each pair
     """
     if isinstance(lines_or_text, list):
         text = " ".join(str(x) for x in lines_or_text)
     else:
         text = str(lines_or_text)
 
-    # Split by any whitespace (tabs, newlines, spaces) or commas
-    tokens = re.split(r'[\s,]+', text.strip())
+    cleaned = text.strip()
+    if not cleaned:
+        raise ValueError("Input text is empty.")
+
+    # 1. Normalize explicit pairs with spaces around delimiter (e.g., "2 _ 7" -> "2_7")
+    cleaned = re.sub(r'(\d+)\s*[_\-\/\:\|]\s*(\d+)', r'\1_\2', cleaned)
+
+    # 2. Split by any whitespace (tabs, newlines, spaces) or commas/semicolons
+    tokens = re.split(r'[\s,;]+', cleaned)
     tokens = [t.strip('"\'') for t in tokens if t.strip('"\'')]
 
     extracted: List[int] = []
     for token in tokens:
-        # Match A_B or A-B or A/B
-        match = re.search(r'^\d+[_\-\/](\d+)$', token)
+        # Match normalized A_B
+        match = re.search(r'^\d+[_\-\/\:\|](\d+)$', token)
         if match:
             extracted.append(int(match.group(1)))
         elif token.isdigit():
             extracted.append(int(token))
         else:
-            sub_parts = re.split(r'[_\-\/]', token)
+            sub_parts = re.split(r'[_\-\/\:\|]', token)
             if len(sub_parts) >= 2 and sub_parts[1].isdigit():
                 extracted.append(int(sub_parts[1]))
+
+    # Fallback/Future-proofing: If 10 raw numbers were extracted (e.g., 5 pairs of A B like "2 7 2 7 2 6 2 3 1 1")
+    if len(extracted) == 10:
+        extracted = [extracted[i] for i in range(1, 10, 2)]
 
     if len(extracted) != 5:
         raise ValueError(
@@ -316,15 +329,46 @@ def stage_7(main_val: int = 1, calc_val: int = 1) -> Dict[str, Any]:
     }
 
 
+def calculate_original_value_adjustment(val: Optional[float]) -> Optional[Dict[str, Any]]:
+    """
+    Calculates 0.85% adjustment for an original value:
+    Step 1 — Calculate 0.85% of value and round to 2 decimal places: round(val * 0.85%, 2)
+    Step 2 — Addition Result = round(val + adjustment, 2)
+    Step 3 — Subtraction Result = round(val - adjustment, 2)
+    """
+    if val is None:
+        return None
+    try:
+        val = float(val)
+    except (ValueError, TypeError):
+        return None
+
+    adjustment = round(val * 0.0085, 2)
+    addition_result = round(val + adjustment, 2)
+    subtraction_result = round(val - adjustment, 2)
+
+    return {
+        "original_value": val,
+        "percentage": 0.85,
+        "adjustment": adjustment,
+        "addition_result": addition_result,
+        "subtraction_result": subtraction_result,
+        "formula_add": f"{val} + {adjustment} = {addition_result:.2f}",
+        "formula_sub": f"{val} - {adjustment} = {subtraction_result:.2f}"
+    }
+
+
 # =====================================================================
 # STAGE 8 — Final Total
 # =====================================================================
 def run_all_stages(main_input: Union[str, List[str], List[int]],
                    calc_input: Union[str, List[str], List[int]],
                    stage7_main: int = 1,
-                   stage7_calc: int = 1) -> Dict[str, Any]:
+                   stage7_calc: int = 1,
+                   original_value: Optional[float] = None) -> Dict[str, Any]:
     """
     Orchestrates Stages 1 through 7 and computes Stage 8 Final Score.
+    Also calculates Original Value 0.85% addition and subtraction results if provided.
     """
     if isinstance(main_input, (str, list)) and len(main_input) > 0 and isinstance(main_input[0], str):
         main_vals = parse_source_lines(main_input)
@@ -346,12 +390,14 @@ def run_all_stages(main_input: Union[str, List[str], List[int]],
 
     stages = [s1, s2, s3, s4, s5, s6, s7]
     final_total = sum(s["points"] for s in stages)
+    orig_adj = calculate_original_value_adjustment(original_value)
 
     return {
         "main_vals": main_vals,
         "calc_vals": calc_vals,
         "stages": stages,
-        "final_total": final_total
+        "final_total": final_total,
+        "original_value_adj": orig_adj
     }
 
 

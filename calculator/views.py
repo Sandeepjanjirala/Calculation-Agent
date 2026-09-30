@@ -73,12 +73,22 @@ class CalculateAPIView(APIView):
             except (ValueError, TypeError):
                 s7_calc = 1
 
+            orig_val = request.data.get('original_value')
+            if orig_val is not None and str(orig_val).strip() != "":
+                try:
+                    orig_val = float(orig_val)
+                except (ValueError, TypeError):
+                    orig_val = None
+            else:
+                orig_val = None
+
             # Run 8-stage calculation
             result = run_all_stages(
                 main_input=main_input,
                 calc_input=calc_input,
                 stage7_main=s7_main,
-                stage7_calc=s7_calc
+                stage7_calc=s7_calc,
+                original_value=orig_val
             )
 
             return Response({
