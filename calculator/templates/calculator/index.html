@@ -136,69 +136,92 @@
 
     <!-- Results Section -->
     <section id="results-section">
-      <!-- Original Value 0.85% Adjustment Results Card (Two Answers) -->
-      <div id="orig-val-results-card" class="glass-panel" style="margin-bottom: 2rem; border-color: var(--accent-primary);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
-          <div>
-            <span class="stage-number" style="background: var(--accent-success-bg); color: var(--accent-success);">0.85% Adjustment Rule</span>
-            <h3 style="font-family: var(--font-display); font-size: 1.35rem; margin-top: 0.25rem; color: var(--text-primary);">Original Value Results</h3>
+      <!-- Original Value 0.85% Adjustment Results Card (The Two Answers) -->
+      <div id="orig-val-results-card" class="adj-panel">
+        <div class="adj-panel-header">
+          <div class="adj-header-info">
+            <span class="adj-tag">0.85% Adjustment Rule</span>
+            <h2 class="adj-title">Original Value Results</h2>
           </div>
-          <div style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-secondary); background: var(--details-bg); padding: 0.5rem 1.1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            Original Value: <strong id="orig-val-display" style="color: var(--text-primary); font-size: 1.05rem;">-</strong> &nbsp;|&nbsp; 
-            Adjustment (0.85%): <strong id="orig-adj-display" style="color: var(--accent-primary); font-size: 1.05rem;">-</strong>
+          <div class="adj-meta-pill">
+            <div class="adj-meta-col">
+              <span class="adj-meta-label">Original Value</span>
+              <strong id="orig-val-display" class="adj-meta-val">-</strong>
+            </div>
+            <div class="adj-meta-divider"></div>
+            <div class="adj-meta-col">
+              <span class="adj-meta-label">Adjustment (0.85%)</span>
+              <strong id="orig-adj-display" class="adj-meta-val">-</strong>
+            </div>
           </div>
         </div>
 
-        <!-- The Two Answers Display Grid -->
-        <div class="grid-2col" style="gap: 1.25rem;">
-          <!-- Answer 1: Addition Result -->
-          <div style="background: var(--details-bg); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); padding: 1.25rem; text-align: center;">
-            <div style="font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-success); letter-spacing: 0.05em; margin-bottom: 0.35rem;">
-              Answer 1 — Addition Result (+0.85%)
+        <!-- Two Balanced Result Panels -->
+        <div class="adj-grid">
+          <!-- Answer 1: Addition Result (Higher Value -> RED) -->
+          <div class="adj-card adj-card-higher" id="adj-card-add">
+            <div class="adj-card-header">
+              <span class="adj-card-title">Answer 1 &mdash; Addition Result (+0.85%)</span>
+              <span id="adj-badge-add" class="adj-status-badge badge-higher">&uarr; Higher Value</span>
             </div>
-            <div id="ans-addition-val" style="font-family: var(--font-display); font-size: 2.75rem; font-weight: 900; color: var(--accent-success); margin-bottom: 0.25rem;">
+            <div id="ans-addition-val" class="adj-card-number val-higher">
               -
             </div>
-            <div id="ans-addition-formula" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-secondary);">
+            <div id="ans-addition-formula" class="adj-card-formula">
               -
             </div>
           </div>
 
-          <!-- Answer 2: Subtraction Result -->
-          <div style="background: var(--details-bg); border: 2px solid var(--border-active); border-radius: var(--radius-md); padding: 1.25rem; text-align: center;">
-            <div style="font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-primary); letter-spacing: 0.05em; margin-bottom: 0.35rem;">
-              Answer 2 — Subtraction Result (-0.85%)
+          <!-- Answer 2: Subtraction Result (Lower Value -> GREEN) -->
+          <div class="adj-card adj-card-lower" id="adj-card-sub">
+            <div class="adj-card-header">
+              <span class="adj-card-title">Answer 2 &mdash; Subtraction Result (-0.85%)</span>
+              <span id="adj-badge-sub" class="adj-status-badge badge-lower">&darr; Lower Value</span>
             </div>
-            <div id="ans-subtraction-val" style="font-family: var(--font-display); font-size: 2.75rem; font-weight: 900; color: var(--accent-primary); margin-bottom: 0.25rem;">
+            <div id="ans-subtraction-val" class="adj-card-number val-lower">
               -
             </div>
-            <div id="ans-subtraction-formula" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-secondary);">
+            <div id="ans-subtraction-formula" class="adj-card-formula">
               -
             </div>
           </div>
         </div>
       </div>
+
       <!-- Hero Scorecard -->
       <div class="hero-scorecard">
-        <div class="hero-label">Final Aggregated Score</div>
-        <div id="hero-total-score" class="hero-score">0</div>
-        <div class="hero-sub">Points Accumulated Across All 7 Stages</div>
+        <div class="hero-top-row">
+          <div class="hero-score-block">
+            <div class="hero-label">Final Aggregated Score</div>
+            <div id="hero-total-score" class="hero-score">0</div>
+            <div class="hero-sub">Points Accumulated Across All 7 Stages</div>
+          </div>
+
+          <div class="hero-stages-summary" id="hero-stages-pills">
+            <!-- Populated dynamically with stage chips: S1: 1 pt, S2: 1 pt, etc. -->
+          </div>
+        </div>
 
         <div class="extracted-pills">
           <div class="extracted-pill">
-            <strong>Main Extracted:</strong> <span id="extracted-main-vals">-</span>
+            <span class="extracted-label">Main File Values:</span>
+            <span id="extracted-main-vals" class="extracted-values">-</span>
           </div>
           <div class="extracted-pill">
-            <strong>Calc Extracted:</strong> <span id="extracted-calc-vals">-</span>
+            <span class="extracted-label">Calc File Values:</span>
+            <span id="extracted-calc-vals" class="extracted-values">-</span>
           </div>
         </div>
       </div>
 
       <!-- Action bar for results -->
       <div class="audit-action-bar">
-        <h2 class="audit-title">Stage-by-Stage Audit Breakdown</h2>
+        <div class="audit-heading-group">
+          <h2 class="audit-title">Stage-by-Stage Audit Breakdown</h2>
+          <p class="audit-subtitle">Detailed mathematical verification and pattern analysis</p>
+        </div>
         <div class="audit-actions">
-          <button type="button" id="btn-copy-report" class="btn btn-secondary">
+          <button type="button" id="btn-copy-report" class="btn btn-secondary" title="Copy full audit text to clipboard">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
             </svg>
@@ -212,8 +235,12 @@
 
       <!-- Stage 8 Equation Panel -->
       <div class="glass-panel equation-panel">
-        <div class="equation-label">
-          Stage 8: Final Total Equation
+        <div class="equation-header">
+          <span class="stage-tag">Stage 8</span>
+          <h3 class="equation-title">Final Total Aggregation Equation</h3>
+        </div>
+        <div class="equation-stages-labels">
+          Stage 1 + Stage 2 + Stage 3 + Stage 4 + Stage 5 + Stage 6 + Stage 7
         </div>
         <div id="stage8-equation" class="equation-display">
           -

@@ -241,26 +241,74 @@ $(document).ready(function () {
     // Render Original Value 0.85% Adjustment Card (The Two Answers)
     if (data.original_value_adj) {
       const adj = data.original_value_adj;
-      $("#orig-val-display").text(adj.original_value);
+      const origValNum = adj.original_value;
+      const addVal = adj.addition_result;
+      const subVal = adj.subtraction_result;
+
+      $("#orig-val-display").text(origValNum);
       $("#orig-adj-display").text(`±${adj.adjustment}`);
 
-      $("#ans-addition-val").text(adj.addition_result.toFixed(2));
-      $("#ans-addition-formula").text(`${adj.original_value} + ${adj.adjustment} = ${adj.addition_result.toFixed(2)}`);
+      // Answer 1: Addition Result
+      $("#ans-addition-val").text(addVal.toFixed(2));
+      $("#ans-addition-formula").text(`${origValNum} + ${adj.adjustment} = ${addVal.toFixed(2)}`);
 
-      $("#ans-subtraction-val").text(adj.subtraction_result.toFixed(2));
-      $("#ans-subtraction-formula").text(`${adj.original_value} - ${adj.adjustment} = ${adj.subtraction_result.toFixed(2)}`);
+      // Answer 2: Subtraction Result
+      $("#ans-subtraction-val").text(subVal.toFixed(2));
+      $("#ans-subtraction-formula").text(`${origValNum} - ${adj.adjustment} = ${subVal.toFixed(2)}`);
+
+      // Dynamic Semantic Color Classes
+      // Higher value than original -> RED
+      const $cardAdd = $("#adj-card-add");
+      const $valAdd = $("#ans-addition-val");
+      const $badgeAdd = $("#adj-badge-add");
+      if (addVal >= origValNum) {
+        $cardAdd.addClass("adj-card-higher").removeClass("adj-card-lower");
+        $valAdd.addClass("val-higher").removeClass("val-lower");
+        $badgeAdd.attr("class", "adj-status-badge badge-higher").html("&uarr; Higher Value");
+      } else {
+        $cardAdd.addClass("adj-card-lower").removeClass("adj-card-higher");
+        $valAdd.addClass("val-lower").removeClass("val-higher");
+        $badgeAdd.attr("class", "adj-status-badge badge-lower").html("&darr; Lower Value");
+      }
+
+      // Lower value than original -> GREEN
+      const $cardSub = $("#adj-card-sub");
+      const $valSub = $("#ans-subtraction-val");
+      const $badgeSub = $("#adj-badge-sub");
+      if (subVal <= origValNum) {
+        $cardSub.addClass("adj-card-lower").removeClass("adj-card-higher");
+        $valSub.addClass("val-lower").removeClass("val-higher");
+        $badgeSub.attr("class", "adj-status-badge badge-lower").html("&darr; Lower Value");
+      } else {
+        $cardSub.addClass("adj-card-higher").removeClass("adj-card-lower");
+        $valSub.addClass("val-higher").removeClass("val-lower");
+        $badgeSub.attr("class", "adj-status-badge badge-higher").html("&uarr; Higher Value");
+      }
 
       $("#orig-val-results-card").fadeIn(200);
     } else {
       $("#orig-val-results-card").hide();
     }
 
-    // Extracted pills
+    // Extracted values
     $("#extracted-main-vals").text(`a=${mv[0]}, b=${mv[1]}, c=${mv[2]}, d=${mv[3]}, e=${mv[4]}`);
     $("#extracted-calc-vals").text(`a=${cv[0]}, b=${cv[1]}, c=${cv[2]}, d=${cv[3]}, e=${cv[4]}`);
 
     // Final total hero
     $("#hero-total-score").text(data.final_total);
+
+    // Hero quick breakdown chips
+    const $chipsContainer = $("#hero-stages-pills");
+    $chipsContainer.empty();
+    data.stages.forEach(function (stage) {
+      const chipClass = stage.points > 0 ? "chip-has-pts" : "";
+      $chipsContainer.append(`
+        <div class="hero-stage-chip ${chipClass}">
+          <span class="chip-stage">S${stage.stage}</span>
+          <span class="chip-pts">${stage.points} pt${stage.points === 1 ? '' : 's'}</span>
+        </div>
+      `);
+    });
 
     // Render Stage Cards (Stages 1 through 7)
     const $grid = $("#stages-grid");
@@ -271,8 +319,9 @@ $(document).ready(function () {
       $grid.append(cardHtml);
     });
 
-    // Render Stage 8 Equation
-    const equationText = data.stage8_equation || (data.stages.map(s => s.points).join(" + ") + ` = ${data.final_total} POINTS`);
+    // Render Stage 8 Equation (matches exact required format)
+    const stageValues = data.stages.map(s => s.points).join(" + ");
+    const equationText = `${stageValues} = ${data.final_total} POINTS`;
     $("#stage8-equation").text(equationText);
   }
 
@@ -283,6 +332,7 @@ $(document).ready(function () {
     const hasPtsClass = pts > 0 ? "has-points" : "";
 
     let detailsHtml = "";
+    let subtotalHtml = "";
 
     if (num === 1) {
       // Stage 1 — Combination Divisibility by 3 + Ratio Divisibility
@@ -290,147 +340,313 @@ $(document).ready(function () {
       const c = s.calc;
 
       detailsHtml = `
-        <div class="calc-section-title">📄 Main File Values [${m.vals.join(', ')}]</div>
-        <div class="calc-step-line">
-          <strong>a+b+c:</strong> ${m.s1_formula} → ${m.s1} % 3 = <strong>${m.s1_rem}</strong> → 
-          ${m.s1_div ? '<span class="status-badge pass">Divisible by 3 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Not divisible by 3 ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-step-line">
-          <strong>c+d+e:</strong> ${m.s2_formula} → ${m.s2} % 3 = <strong>${m.s2_rem}</strong> → 
-          ${m.s2_div ? '<span class="status-badge pass">Divisible by 3 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Not divisible by 3 ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-step-line">
-          <strong>Ratio (S1/S2):</strong> ${m.ratio_str}${m.quotient !== null ? ' = <strong>' + m.quotient + '</strong>' : ''} → 
-          ${m.ratio_qualifies ? '<span class="status-badge pass">' + m.ratio_reasons.join(', ') + ' ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">No qualifying condition ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-subtotal-row">
-          <span>Main Subtotal:</span>
-          <span>${m.comb_points} (Comb) + ${m.ratio_points} (Ratio) = <strong>${m.points} pts</strong></span>
+        <div class="audit-block">
+          <div class="audit-block-header">Main File Values: [${m.vals.join(', ')}]</div>
+          
+          <div class="calc-group">
+            <div class="calc-label">Combination 1: a + b + c</div>
+            <div class="calc-formula">${m.s1_formula}</div>
+            <div class="calc-formula">${m.s1} % 3 = ${m.s1_rem}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${m.s1_div ? '<span class="status-pass-text">Divisible by 3</span>' : '<span class="status-fail-text">Not divisible by 3</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${m.s1_pts} pt</span>
+            </div>
+          </div>
+
+          <div class="calc-group">
+            <div class="calc-label">Combination 2: c + d + e</div>
+            <div class="calc-formula">${m.s2_formula}</div>
+            <div class="calc-formula">${m.s2} % 3 = ${m.s2_rem}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${m.s2_div ? '<span class="status-pass-text">Divisible by 3</span>' : '<span class="status-fail-text">Not divisible by 3</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${m.s2_pts} pt</span>
+            </div>
+          </div>
+
+          <div class="calc-group">
+            <div class="calc-label">Ratio Check: S1 / S2</div>
+            <div class="calc-formula">Ratio = ${m.ratio_str}${m.quotient !== null ? ' = ' + m.quotient : ''}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Condition:</strong> ${m.ratio_qualifies ? '<span class="status-pass-text">' + m.ratio_reasons.join(', ') + '</span>' : '<span class="status-fail-text">No qualifying condition</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${m.ratio_points} pt</span>
+            </div>
+          </div>
+
+          <div class="block-subtotal">
+            <span>Main Subtotal:</span>
+            <strong>${m.comb_points} (Comb) + ${m.ratio_points} (Ratio) = ${m.points} pts</strong>
+          </div>
         </div>
 
-        <div class="calc-section-title" style="margin-top:0.85rem;">📊 Calculation File Values [${c.vals.join(', ')}]</div>
-        <div class="calc-step-line">
-          <strong>a+b+c:</strong> ${c.s1_formula} → ${c.s1} % 3 = <strong>${c.s1_rem}</strong> → 
-          ${c.s1_div ? '<span class="status-badge pass">Divisible by 3 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Not divisible by 3 ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-step-line">
-          <strong>c+d+e:</strong> ${c.s2_formula} → ${c.s2} % 3 = <strong>${c.s2_rem}</strong> → 
-          ${c.s2_div ? '<span class="status-badge pass">Divisible by 3 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Not divisible by 3 ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-step-line">
-          <strong>Ratio (S1/S2):</strong> ${c.ratio_str}${c.quotient !== null ? ' = <strong>' + c.quotient + '</strong>' : ''} → 
-          ${c.ratio_qualifies ? '<span class="status-badge pass">' + c.ratio_reasons.join(', ') + ' ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">No qualifying condition ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-subtotal-row">
-          <span>Calc Subtotal:</span>
-          <span>${c.comb_points} (Comb) + ${c.ratio_points} (Ratio) = <strong>${c.points} pts</strong></span>
-        </div>
+        <div class="audit-block">
+          <div class="audit-block-header">Calculation File Values: [${c.vals.join(', ')}]</div>
+          
+          <div class="calc-group">
+            <div class="calc-label">Combination 1: a + b + c</div>
+            <div class="calc-formula">${c.s1_formula}</div>
+            <div class="calc-formula">${c.s1} % 3 = ${c.s1_rem}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${c.s1_div ? '<span class="status-pass-text">Divisible by 3</span>' : '<span class="status-fail-text">Not divisible by 3</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${c.s1_pts} pt</span>
+            </div>
+          </div>
 
-        <div class="calc-subtotal-row" style="margin-top:0.75rem; border-top:2px solid var(--border-active); font-size:0.95rem;">
-          <span>Stage 1 Total:</span>
-          <span>${m.points} (Main) + ${c.points} (Calc) = <strong>${pts} pts</strong></span>
+          <div class="calc-group">
+            <div class="calc-label">Combination 2: c + d + e</div>
+            <div class="calc-formula">${c.s2_formula}</div>
+            <div class="calc-formula">${c.s2} % 3 = ${c.s2_rem}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${c.s2_div ? '<span class="status-pass-text">Divisible by 3</span>' : '<span class="status-fail-text">Not divisible by 3</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${c.s2_pts} pt</span>
+            </div>
+          </div>
+
+          <div class="calc-group">
+            <div class="calc-label">Ratio Check: S1 / S2</div>
+            <div class="calc-formula">Ratio = ${c.ratio_str}${c.quotient !== null ? ' = ' + c.quotient : ''}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Condition:</strong> ${c.ratio_qualifies ? '<span class="status-pass-text">' + c.ratio_reasons.join(', ') + '</span>' : '<span class="status-fail-text">No qualifying condition</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${c.ratio_points} pt</span>
+            </div>
+          </div>
+
+          <div class="block-subtotal">
+            <span>Calc Subtotal:</span>
+            <strong>${c.comb_points} (Comb) + ${c.ratio_points} (Ratio) = ${c.points} pts</strong>
+          </div>
         </div>
       `;
+
+      subtotalHtml = `${m.points} (Main) + ${c.points} (Calc) = <strong>${pts} pts</strong>`;
     } else if (num === 2) {
       // Stage 2 — Total Sum Divisibility by 2 and 3
       const m = s.main;
       const c = s.calc;
 
       detailsHtml = `
-        <div class="calc-section-title">📄 Main File Values</div>
-        <div class="calc-step-line"><strong>Sum:</strong> ${m.sum_formula}</div>
-        <div class="calc-step-line">
-          <strong>Divisible by 2:</strong> ${m.sum} % 2 = <strong>${m.div_by_2_rem}</strong> → 
-          ${m.div_by_2 ? '<span class="status-badge pass">Divisible by 2 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Not divisible by 2 ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-step-line">
-          <strong>Divisible by 3:</strong> ${m.sum} % 3 = <strong>${m.div_by_3_rem}</strong> → 
-          ${m.div_by_3 ? '<span class="status-badge pass">Divisible by 3 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Not divisible by 3 ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-subtotal-row">
-          <span>Main Subtotal:</span>
-          <span><strong>${m.points} pts</strong></span>
-        </div>
-
-        <div class="calc-section-title" style="margin-top:0.85rem;">📊 Calculation File Values</div>
-        <div class="calc-step-line"><strong>Sum:</strong> ${c.sum_formula}</div>
-        <div class="calc-step-line">
-          <strong>Divisible by 2:</strong> ${c.sum} % 2 = <strong>${c.div_by_2_rem}</strong> → 
-          ${c.div_by_2 ? '<span class="status-badge pass">Divisible by 2 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Not divisible by 2 ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-step-line">
-          <strong>Divisible by 3:</strong> ${c.sum} % 3 = <strong>${c.div_by_3_rem}</strong> → 
-          ${c.div_by_3 ? '<span class="status-badge pass">Divisible by 3 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Not divisible by 3 ✗</span> <strong>+0 pts</strong>'}
-        </div>
-        <div class="calc-subtotal-row">
-          <span>Calc Subtotal:</span>
-          <span><strong>${c.points} pts</strong></span>
+        <div class="audit-block">
+          <div class="audit-block-header">Main File Values</div>
+          <div class="calc-group">
+            <div class="calc-label">Total Sum</div>
+            <div class="calc-formula">${m.sum_formula}</div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Divisibility by 2</div>
+            <div class="calc-formula">${m.sum} % 2 = ${m.div_by_2_rem}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${m.div_by_2 ? '<span class="status-pass-text">Divisible by 2</span>' : '<span class="status-fail-text">Not divisible by 2</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${m.div_by_2_pts} pt</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Divisibility by 3</div>
+            <div class="calc-formula">${m.sum} % 3 = ${m.div_by_3_rem}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${m.div_by_3 ? '<span class="status-pass-text">Divisible by 3</span>' : '<span class="status-fail-text">Not divisible by 3</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${m.div_by_3_pts} pt</span>
+            </div>
+          </div>
+          <div class="block-subtotal">
+            <span>Main Subtotal:</span>
+            <strong>${m.points} pts</strong>
+          </div>
         </div>
 
-        <div class="calc-subtotal-row" style="margin-top:0.75rem; border-top:2px solid var(--border-active); font-size:0.95rem;">
-          <span>Stage 2 Total:</span>
-          <span>${m.points} (Main) + ${c.points} (Calc) = <strong>${pts} pts</strong></span>
+        <div class="audit-block">
+          <div class="audit-block-header">Calculation File Values</div>
+          <div class="calc-group">
+            <div class="calc-label">Total Sum</div>
+            <div class="calc-formula">${c.sum_formula}</div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Divisibility by 2</div>
+            <div class="calc-formula">${c.sum} % 2 = ${c.div_by_2_rem}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${c.div_by_2 ? '<span class="status-pass-text">Divisible by 2</span>' : '<span class="status-fail-text">Not divisible by 2</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${c.div_by_2_pts} pt</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Divisibility by 3</div>
+            <div class="calc-formula">${c.sum} % 3 = ${c.div_by_3_rem}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${c.div_by_3 ? '<span class="status-pass-text">Divisible by 3</span>' : '<span class="status-fail-text">Not divisible by 3</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${c.div_by_3_pts} pt</span>
+            </div>
+          </div>
+          <div class="block-subtotal">
+            <span>Calc Subtotal:</span>
+            <strong>${c.points} pts</strong>
+          </div>
         </div>
       `;
+
+      subtotalHtml = `${m.points} (Main) + ${c.points} (Calc) = <strong>${pts} pts</strong>`;
     } else if (num === 3) {
       // Stage 3 — Threshold 5 Calculation + Pattern Comparison
       const m = s.main;
       const c = s.calc;
 
       detailsHtml = `
-        <div class="calc-section-title">📄 Main File (Threshold 5)</div>
-        <div class="calc-step-line"><strong>a+c:</strong> ${m.ac_formula} → <strong>${m.ac_threshold}</strong></div>
-        <div class="calc-step-line"><strong>c+e:</strong> ${m.ce_formula} → <strong>${m.ce_threshold}</strong></div>
-        <div class="calc-step-line"><strong>Main Pattern:</strong> <span class="pattern-chip">${m.pattern}</span> (${m.pattern_type})</div>
+        <div class="audit-block">
+          <div class="audit-block-header">Main File (Threshold 5)</div>
+          <div class="calc-group">
+            <div class="calc-label">Combination a + c</div>
+            <div class="calc-formula">${m.ac_formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${m['a+c']} ${m['a+c'] >= 5 ? '&ge;' : '<'} 5 &rarr; Pattern '<strong>${m.p1}</strong>'</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Combination c + e</div>
+            <div class="calc-formula">${m.ce_formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${m['c+e']} ${m['c+e'] >= 5 ? '&ge;' : '<'} 5 &rarr; Pattern '<strong>${m.p2}</strong>'</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Main Pattern:</strong> <span class="pattern-pill">${m.pattern}</span> (${m.pattern_type})</span>
+            </div>
+          </div>
+        </div>
 
-        <div class="calc-section-title" style="margin-top:0.85rem;">📊 Calculation File (Threshold 5)</div>
-        <div class="calc-step-line"><strong>a+c:</strong> ${c.ac_formula} → <strong>${c.ac_threshold}</strong></div>
-        <div class="calc-step-line"><strong>c+e:</strong> ${c.ce_formula} → <strong>${c.ce_threshold}</strong></div>
-        <div class="calc-step-line"><strong>Calc Pattern:</strong> <span class="pattern-chip">${c.pattern}</span> (${c.pattern_type})</div>
+        <div class="audit-block">
+          <div class="audit-block-header">Calculation File (Threshold 5)</div>
+          <div class="calc-group">
+            <div class="calc-label">Combination a + c</div>
+            <div class="calc-formula">${c.ac_formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${c['a+c']} ${c['a+c'] >= 5 ? '&ge;' : '<'} 5 &rarr; Pattern '<strong>${c.p1}</strong>'</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Combination c + e</div>
+            <div class="calc-formula">${c.ce_formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${c['c+e']} ${c['c+e'] >= 5 ? '&ge;' : '<'} 5 &rarr; Pattern '<strong>${c.p2}</strong>'</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Calc Pattern:</strong> <span class="pattern-pill">${c.pattern}</span> (${c.pattern_type})</span>
+            </div>
+          </div>
+        </div>
 
-        <div class="calc-subtotal-row" style="margin-top:0.75rem; border-top:2px solid var(--border-active);">
-          <span>Pattern Comparison:</span>
-          <span>${s.comparison} → ${pts === 1 ? '<span class="status-badge pass">Different types (Mixed vs Homogeneous) ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Same type ✗</span> <strong>+0 pts</strong>'}</span>
+        <div class="audit-block audit-comparison-block">
+          <div class="audit-block-header">Pattern Comparison</div>
+          <div class="calc-formula">${s.comparison}</div>
+          <div class="calc-meta-row">
+            <span class="calc-meta-item"><strong>Condition:</strong> ${pts === 1 ? '<span class="status-pass-text">Different types (Mixed vs Homogeneous)</span>' : '<span class="status-fail-text">Same pattern type</span>'}</span>
+            <span class="calc-meta-item"><strong>Points awarded:</strong> ${pts} pt</span>
+          </div>
         </div>
       `;
+
+      subtotalHtml = `Stage 3 Total = <strong>${pts} pts</strong>`;
     } else if (num === 4) {
       // Stage 4 — Inner Calculation Using 10
       const m = s.main;
       const c = s.calc;
 
       detailsHtml = `
-        <div class="calc-section-title">📄 Main File (a+c) + (c+e) vs 10</div>
-        <div class="calc-step-line"><strong>Formula:</strong> ${m.formula} → <strong>${m.threshold}</strong></div>
+        <div class="audit-block">
+          <div class="audit-block-header">Main File: (a + c) + (c + e) vs 10</div>
+          <div class="calc-group">
+            <div class="calc-label">Formula</div>
+            <div class="calc-formula">${m.formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${m.combined} ${m.combined >= 10 ? '&ge;' : '<'} 10 &rarr; Sign '<strong>${m.result}</strong>'</span>
+            </div>
+          </div>
+        </div>
 
-        <div class="calc-section-title" style="margin-top:0.85rem;">📊 Calculation File (a+c) + (c+e) vs 10</div>
-        <div class="calc-step-line"><strong>Formula:</strong> ${c.formula} → <strong>${c.threshold}</strong></div>
+        <div class="audit-block">
+          <div class="audit-block-header">Calculation File: (a + c) + (c + e) vs 10</div>
+          <div class="calc-group">
+            <div class="calc-label">Formula</div>
+            <div class="calc-formula">${c.formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${c.combined} ${c.combined >= 10 ? '&ge;' : '<'} 10 &rarr; Sign '<strong>${c.result}</strong>'</span>
+            </div>
+          </div>
+        </div>
 
-        <div class="calc-subtotal-row" style="margin-top:0.75rem; border-top:2px solid var(--border-active);">
-          <span>Sign Comparison:</span>
-          <span>${s.comparison} → ${pts === 1 ? '<span class="status-badge pass">Different signs ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Same sign ✗</span> <strong>+0 pts</strong>'}</span>
+        <div class="audit-block audit-comparison-block">
+          <div class="audit-block-header">Sign Comparison</div>
+          <div class="calc-formula">Main '${m.result}' vs Calc '${c.result}'</div>
+          <div class="calc-meta-row">
+            <span class="calc-meta-item"><strong>Condition:</strong> ${pts === 1 ? '<span class="status-pass-text">Different signs</span>' : '<span class="status-fail-text">Same sign</span>'}</span>
+            <span class="calc-meta-item"><strong>Points awarded:</strong> ${pts} pt</span>
+          </div>
         </div>
       `;
+
+      subtotalHtml = `Stage 4 Total = <strong>${pts} pts</strong>`;
     } else if (num === 5) {
       // Stage 5 — Individual Inner Calculation Against 10
       const m = s.main;
       const c = s.calc;
 
       detailsHtml = `
-        <div class="calc-section-title">📄 Main File (Separate vs 10)</div>
-        <div class="calc-step-line"><strong>a+c:</strong> ${m.ac_formula} → <strong>${m.ac_threshold}</strong></div>
-        <div class="calc-step-line"><strong>c+e:</strong> ${m.ce_formula} → <strong>${m.ce_threshold}</strong></div>
-        <div class="calc-step-line"><strong>Main Pattern:</strong> <span class="pattern-chip">${m.pattern}</span> (${m.pattern_type})</div>
+        <div class="audit-block">
+          <div class="audit-block-header">Main File (Separate vs 10)</div>
+          <div class="calc-group">
+            <div class="calc-label">Combination a + c</div>
+            <div class="calc-formula">${m.ac_formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${m['a+c']} ${m['a+c'] >= 10 ? '&ge;' : '<'} 10 &rarr; '<strong>${m.p1}</strong>'</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Combination c + e</div>
+            <div class="calc-formula">${m.ce_formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${m['c+e']} ${m['c+e'] >= 10 ? '&ge;' : '<'} 10 &rarr; '<strong>${m.p2}</strong>'</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Main Pattern:</strong> <span class="pattern-pill">${m.pattern}</span> (${m.pattern_type})</span>
+            </div>
+          </div>
+        </div>
 
-        <div class="calc-section-title" style="margin-top:0.85rem;">📊 Calculation File (Separate vs 10)</div>
-        <div class="calc-step-line"><strong>a+c:</strong> ${c.ac_formula} → <strong>${c.ac_threshold}</strong></div>
-        <div class="calc-step-line"><strong>c+e:</strong> ${c.ce_formula} → <strong>${c.ce_threshold}</strong></div>
-        <div class="calc-step-line"><strong>Calc Pattern:</strong> <span class="pattern-chip">${c.pattern}</span> (${c.pattern_type})</div>
+        <div class="audit-block">
+          <div class="audit-block-header">Calculation File (Separate vs 10)</div>
+          <div class="calc-group">
+            <div class="calc-label">Combination a + c</div>
+            <div class="calc-formula">${c.ac_formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${c['a+c']} ${c['a+c'] >= 10 ? '&ge;' : '<'} 10 &rarr; '<strong>${c.p1}</strong>'</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Combination c + e</div>
+            <div class="calc-formula">${c.ce_formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Comparison:</strong> ${c['c+e']} ${c['c+e'] >= 10 ? '&ge;' : '<'} 10 &rarr; '<strong>${c.p2}</strong>'</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Calc Pattern:</strong> <span class="pattern-pill">${c.pattern}</span> (${c.pattern_type})</span>
+            </div>
+          </div>
+        </div>
 
-        <div class="calc-subtotal-row" style="margin-top:0.75rem; border-top:2px solid var(--border-active);">
-          <span>Pattern Comparison:</span>
-          <span>${s.comparison} → ${pts === 1 ? '<span class="status-badge pass">Different types (Mixed vs Homogeneous) ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Same type ✗</span> <strong>+0 pts</strong>'}</span>
+        <div class="audit-block audit-comparison-block">
+          <div class="audit-block-header">Pattern Comparison</div>
+          <div class="calc-formula">${s.comparison}</div>
+          <div class="calc-meta-row">
+            <span class="calc-meta-item"><strong>Condition:</strong> ${pts === 1 ? '<span class="status-pass-text">Different types (Mixed vs Homogeneous)</span>' : '<span class="status-fail-text">Same pattern type</span>'}</span>
+            <span class="calc-meta-item"><strong>Points awarded:</strong> ${pts} pt</span>
+          </div>
         </div>
       `;
+
+      subtotalHtml = `Stage 5 Total = <strong>${pts} pts</strong>`;
     } else if (num === 6) {
       // Stage 6 — P1/P2 Digit Calculation + Pattern Comparison + Vertical Calculation
       const p1 = s.P1;
@@ -438,72 +654,95 @@ $(document).ready(function () {
       const vert = s.vertical;
 
       detailsHtml = `
-        <div class="calc-section-title">Part A & B: P1 & P2 Digit Pattern Comparison</div>
-        <div class="calc-step-line">
-          <strong>P1 (Main Sum):</strong> ${p1.sum_formula} → Digits: [<strong>${p1.digits.join(', ')}</strong>]
-        </div>
-        <div class="calc-step-line">
-          <strong>P1 Digit Checks:</strong> ${p1.d1_threshold}, ${p1.d2_threshold} → Pattern: <span class="pattern-chip">${p1.pattern}</span> (${p1.pattern_type})
-        </div>
-        <div class="calc-step-line" style="margin-top:0.5rem;">
-          <strong>P2 (Calc Sum):</strong> ${p2.sum_formula} → Digits: [<strong>${p2.digits.join(', ')}</strong>]
-        </div>
-        <div class="calc-step-line">
-          <strong>P2 Digit Checks:</strong> ${p2.d1_threshold}, ${p2.d2_threshold} → Pattern: <span class="pattern-chip">${p2.pattern}</span> (${p2.pattern_type})
-        </div>
-        <div class="calc-subtotal-row" style="margin-top:0.4rem;">
-          <span>Pattern Comparison:</span>
-          <span>${s.pattern_comparison} → ${s.pattern_points === 1 ? '<span class="status-badge pass">Different types ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Same type ✗</span> <strong>+0 pts</strong>'}</span>
+        <div class="audit-block">
+          <div class="audit-block-header">Part A & B: P1 & P2 Digit Patterns</div>
+          <div class="calc-group">
+            <div class="calc-label">P1 (Main Sum)</div>
+            <div class="calc-formula">${p1.sum_formula} &rarr; Digits: [${p1.digits.join(', ')}]</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Checks:</strong> ${p1.d1} ${p1.d1 >= 5 ? '&ge;' : '<'} 5, ${p1.d2} ${p1.d2 >= 5 ? '&ge;' : '<'} 5</span>
+              <span class="calc-meta-item"><strong>Pattern:</strong> <span class="pattern-pill">${p1.pattern}</span> (${p1.pattern_type})</span>
+            </div>
+          </div>
+
+          <div class="calc-group">
+            <div class="calc-label">P2 (Calc Sum)</div>
+            <div class="calc-formula">${p2.sum_formula} &rarr; Digits: [${p2.digits.join(', ')}]</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Checks:</strong> ${p2.d1} ${p2.d1 >= 5 ? '&ge;' : '<'} 5, ${p2.d2} ${p2.d2 >= 5 ? '&ge;' : '<'} 5</span>
+              <span class="calc-meta-item"><strong>Pattern:</strong> <span class="pattern-pill">${p2.pattern}</span> (${p2.pattern_type})</span>
+            </div>
+          </div>
+
+          <div class="calc-group">
+            <div class="calc-formula">${s.pattern_comparison}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Condition:</strong> ${s.pattern_points === 1 ? '<span class="status-pass-text">Different types (Mixed vs Homogeneous)</span>' : '<span class="status-fail-text">Same pattern type</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${s.pattern_points} pt</span>
+            </div>
+          </div>
         </div>
 
-        <div class="calc-section-title" style="margin-top:0.85rem;">Part C: Vertical Calculation</div>
-        <div class="calc-step-line">
-          <strong>Formula:</strong> |Main value - Calculation value| = <strong>${vert.formula}</strong> → <strong>+${vert.points} pts</strong>
-        </div>
-
-        <div class="calc-subtotal-row" style="margin-top:0.75rem; border-top:2px solid var(--border-active); font-size:0.95rem;">
-          <span>Stage 6 Subtotal:</span>
-          <span>${s.pattern_points} (Pattern) + ${vert.points} (Vertical) = <strong>${pts} pts</strong></span>
+        <div class="audit-block">
+          <div class="audit-block-header">Part C: Vertical Calculation</div>
+          <div class="calc-group">
+            <div class="calc-label">Formula: |Main value - Calculation value|</div>
+            <div class="calc-formula">${vert.formula}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> Absolute Difference = ${vert.points}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${vert.points} pts</span>
+            </div>
+          </div>
         </div>
       `;
+
+      subtotalHtml = `${s.pattern_points} (Pattern) + ${vert.points} (Vertical) = <strong>${pts} pts</strong>`;
     } else if (num === 7) {
       // Stage 7 — P1/P2 Average Divisibility by 2
       detailsHtml = `
-        <div class="calc-section-title">P1 & P2 Average Divisibility Calculation</div>
-        <div class="calc-step-line">
-          <strong>Input Totals:</strong> P1 = <strong>${s.P1}</strong>, P2 = <strong>${s.P2}</strong>
-        </div>
-        <div class="calc-step-line">
-          <strong>Sum:</strong> ${s.sum_formula}
-        </div>
-        <div class="calc-step-line">
-          <strong>Divisibility Test:</strong> ${s.sum} % 2 = <strong>${s.remainder}</strong> → 
-          ${s.div_by_2 ? '<span class="status-badge pass">Divisible by 2 ✓</span>' : '<span class="status-badge fail">Not divisible by 2 (Odd sum) ✗</span>'}
-        </div>
-        <div class="calc-step-line">
-          <strong>Calculated Average:</strong> (${s.P1} + ${s.P2}) / 2 = <strong>${s.average_display}</strong>
-        </div>
-
-        <div class="calc-subtotal-row" style="margin-top:0.75rem; border-top:2px solid var(--border-active); font-size:0.95rem;">
-          <span>Stage 7 Total:</span>
-          <span>${s.div_by_2 ? '<span class="status-badge pass">Divisible by 2 ✓</span> <strong>+1 pt</strong>' : '<span class="status-badge fail">Odd sum, non-integer average ✗</span> <strong>+0 pts</strong>'}</span>
+        <div class="audit-block">
+          <div class="audit-block-header">P1 & P2 Totals & Sum</div>
+          <div class="calc-group">
+            <div class="calc-label">Input Sums</div>
+            <div class="calc-formula">P1 = ${s.P1}, P2 = ${s.P2}</div>
+            <div class="calc-formula">Total Sum: ${s.sum_formula}</div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Divisibility Test by 2</div>
+            <div class="calc-formula">${s.sum} % 2 = ${s.remainder}</div>
+            <div class="calc-meta-row">
+              <span class="calc-meta-item"><strong>Result:</strong> ${s.div_by_2 ? '<span class="status-pass-text">Divisible by 2</span>' : '<span class="status-fail-text">Not divisible by 2 (Odd sum)</span>'}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${s.points} pt</span>
+            </div>
+          </div>
+          <div class="calc-group">
+            <div class="calc-label">Calculated Average</div>
+            <div class="calc-formula">(${s.P1} + ${s.P2}) / 2 = ${s.average_display}</div>
+          </div>
         </div>
       `;
+
+      subtotalHtml = `${s.div_by_2 ? 'Divisible by 2 &rarr; <strong>1 pt</strong>' : 'Non-integer average &rarr; <strong>0 pts</strong>'}`;
     }
 
     return `
       <div class="stage-card">
         <div class="stage-header">
-          <div>
-            <span class="stage-number">Stage ${num}</span>
-            <div class="stage-title">${name}</div>
+          <div class="stage-header-title-wrap">
+            <span class="stage-tag">Stage ${num}</span>
+            <h3 class="stage-title">${name}</h3>
           </div>
           <div class="points-badge ${hasPtsClass}">
-            ${pts} <span style="font-size:0.75rem; font-weight:500;">pts</span>
+            <span class="pts-val">${pts}</span>
+            <span class="pts-unit">pts</span>
           </div>
         </div>
-        <div class="stage-details">
+        <div class="stage-body">
           ${detailsHtml}
+        </div>
+        <div class="stage-footer">
+          <span class="stage-footer-label">Stage ${num} Subtotal</span>
+          <span class="stage-footer-val">${subtotalHtml}</span>
         </div>
       </div>
     `;
