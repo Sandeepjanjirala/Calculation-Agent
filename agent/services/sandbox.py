@@ -135,6 +135,13 @@ def _validate_ast(code: str) -> ast.AST:
     return tree
 
 
+def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
+    root = name.split(".")[0]
+    if root not in _SAFE_MODULES:
+        raise ImportError(f"Importing '{name}' is not allowed.")
+    return builtins.__import__(name, globals, locals, fromlist, level)
+
+
 _SAFE_BUILTINS = {
     name: getattr(builtins, name)
     for name in (
@@ -145,6 +152,7 @@ _SAFE_BUILTINS = {
     )
     if hasattr(builtins, name)
 }
+_SAFE_BUILTINS["__import__"] = _safe_import
 
 
 def _run_in_process(code: str, dataframes: dict, result_queue):

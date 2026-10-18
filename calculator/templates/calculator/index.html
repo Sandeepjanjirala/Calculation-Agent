@@ -124,14 +124,12 @@
           </div>
         </div>
 
-        <!-- Calculate Trigger Button -->
-        <div class="submit-container">
-          <button type="submit" id="btn-calculate" class="btn btn-primary btn-submit-calc">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            </svg>
-            Submit & Calculate Total Points
-          </button>
+        <!-- Auto-Calculation Live Status Pill -->
+        <div style="margin-top: 1.25rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+          <span id="auto-calc-indicator" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; padding: 0.35rem 0.85rem; border-radius: 9999px; background: var(--callout-bg); border: 1px solid var(--callout-border); color: var(--accent-primary);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span id="auto-calc-text">Automatic Calculation Active</span>
+          </span>
         </div>
       </form>
     </section>

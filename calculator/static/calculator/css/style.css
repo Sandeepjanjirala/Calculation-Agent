@@ -657,6 +657,67 @@ body {
   letter-spacing: 0.1em;
 }
 
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.status-badge.pass {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: var(--accent-success);
+}
+
+.status-badge.fail {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: var(--accent-danger);
+}
+
+.calc-section-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-primary);
+  margin-top: 0.65rem;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+
+.calc-section-title:first-child {
+  margin-top: 0;
+}
+
+.calc-subtotal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.4rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calc-step-line {
+  margin: 0.3rem 0;
+  line-height: 1.45;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.calc-step-line strong {
+  color: var(--text-primary);
+}
+
 .check-pill {
   font-size: 0.75rem;
   font-weight: 700;
@@ -665,12 +726,14 @@ body {
 }
 
 .check-pass {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.45);
   color: var(--accent-success);
 }
 
 .check-fail {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.45);
   color: var(--accent-danger);
 }
 

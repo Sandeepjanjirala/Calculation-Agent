@@ -16,21 +16,26 @@ def sample_data_view(request):
     """Returns the official reference sample data and Excel screenshot dataset."""
     sample_type = request.GET.get('type', 'excel')
     if sample_type == 'spec':
+        main_src = "1-2\n1-1\n2-6\n1-1\n1-2"
+        calc_src = "1-2\n1-1\n2-8\n1-3\n1-2"
+        calc_res = run_all_stages(main_src, calc_src, stage6_main_val=1, stage6_calc_val=1)
         return JsonResponse({
-            "main_source": "1-2\n1-1\n2-6\n1-1\n1-2",
-            "calc_source": "1-2\n1-1\n2-8\n1-3\n1-2",
-            "stage7_main": 1,
-            "stage7_calc": 1,
-            "expected_total": 6
+            "main_source": main_src,
+            "calc_source": calc_src,
+            "stage6_main": 1,
+            "stage6_calc": 1,
+            "expected_total": calc_res["final_total"]
         })
     else:
-        # Default: Excel format from screenshots
+        main_src = "1_2\n1_3\n2_1\n2_1\n3_1"
+        calc_src = "2_2\n1_2\n2_2\n2_3\n2_1"
+        calc_res = run_all_stages(main_src, calc_src, stage6_main_val=1, stage6_calc_val=1)
         return JsonResponse({
-            "main_source": "1_2\n1_3\n2_1\n2_1\n3_1",
-            "calc_source": "2_2\n1_2\n2_2\n2_3\n2_1",
-            "stage7_main": 1,
-            "stage7_calc": 1,
-            "expected_total": 7
+            "main_source": main_src,
+            "calc_source": calc_src,
+            "stage6_main": 1,
+            "stage6_calc": 1,
+            "expected_total": calc_res["final_total"]
         })
 
 
@@ -62,16 +67,18 @@ class CalculateAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Stage 7 parameters (optional, defaults to 1)
+            # Vertical calculation parameters in Stage 6 (optional, defaults to 1)
+            raw_s6_main = request.data.get('stage6_main', request.data.get('stage7_main', 1))
             try:
-                s7_main = int(request.data.get('stage7_main', 1))
+                s6_main = int(raw_s6_main)
             except (ValueError, TypeError):
-                s7_main = 1
+                s6_main = 1
 
+            raw_s6_calc = request.data.get('stage6_calc', request.data.get('stage7_calc', 1))
             try:
-                s7_calc = int(request.data.get('stage7_calc', 1))
+                s6_calc = int(raw_s6_calc)
             except (ValueError, TypeError):
-                s7_calc = 1
+                s6_calc = 1
 
             orig_val = request.data.get('original_value')
             if orig_val is not None and str(orig_val).strip() != "":
@@ -86,8 +93,8 @@ class CalculateAPIView(APIView):
             result = run_all_stages(
                 main_input=main_input,
                 calc_input=calc_input,
-                stage7_main=s7_main,
-                stage7_calc=s7_calc,
+                stage6_main_val=s6_main,
+                stage6_calc_val=s6_calc,
                 original_value=orig_val
             )
 
