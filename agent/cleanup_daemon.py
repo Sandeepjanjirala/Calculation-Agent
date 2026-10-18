@@ -7,6 +7,7 @@ Automatically purges media and project sessions that exceed the 12-hour retentio
 import logging
 import threading
 from django.conf import settings
+from django.db import OperationalError, ProgrammingError
 
 logger = logging.getLogger("agent.cleanup")
 
@@ -28,6 +29,8 @@ def _cleanup_worker():
     while not _stop_event.is_set():
         try:
             cleanup_expired_sessions()
+        except (OperationalError, ProgrammingError) as db_err:
+            logger.warning("Database tables not yet ready for media cleanup daemon (run 'python manage.py migrate'): %s", db_err)
         except Exception as e:
             logger.error("Error during periodic media cleanup: %s", e, exc_info=True)
 

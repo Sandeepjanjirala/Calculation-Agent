@@ -18,12 +18,19 @@ if exist "venv\Scripts\activate.bat" (
     echo [INFO] Using system Python...
 )
 
-:: 2. Launch browser automatically in 2 seconds
+:: 2. Auto-apply database migrations
+echo [INFO] Checking database migrations...
+python manage.py migrate --noinput
+
+:: 3. Launch browser automatically in 2 seconds
 start "" powershell -Command "Start-Sleep -Seconds 2; Start-Process 'http://127.0.0.1:8005/'"
 
-:: 3. Start Django Server
-echo [INFO] Server running on http://127.0.0.1:8005/
-echo [INFO] Close this window to stop the server.
+:: 4. Start Django Server
 echo.
-python manage.py runserver 8005
+echo [INFO] Server running on:
+echo   - Local:   http://127.0.0.1:8005/
+echo   - Network: http://0.0.0.0:8005/
+echo [INFO] Keep this window open while using the application.
+echo.
+python manage.py runserver 0.0.0.0:8005
 pause
