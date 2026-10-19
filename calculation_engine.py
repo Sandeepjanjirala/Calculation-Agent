@@ -468,11 +468,19 @@ def stage_6(main_vals: List[int], calc_vals: List[int], main_val: int = 1, calc_
     pattern_points = _compare_patterns(p1_info["pattern"], p2_info["pattern"])
 
     # Part C: Vertical calculation
-    diff = abs(main_val - calc_val)
+    # Vertical values are the first digits (column 1) of P1 and P2 digits:
+    # e.g., P1: [2, 0] -> 2, P2: [1, 8] -> 1 -> |2 - 1| = 1 point
+    v1 = p1_info["d1"]
+    v2 = p2_info["d1"]
+    diff = abs(v1 - v2)
     vertical_res = {
-        "main_val": main_val,
-        "calc_val": calc_val,
-        "formula": f"|{main_val} - {calc_val}| = {diff}",
+        "v1": v1,
+        "v2": v2,
+        "main_val": v1,
+        "calc_val": v2,
+        "p1_digits": p1_info["digits"],
+        "p2_digits": p2_info["digits"],
+        "formula": f"|{v1} - {v2}| = {diff}",
         "points": diff
     }
 

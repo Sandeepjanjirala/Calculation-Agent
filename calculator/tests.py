@@ -184,9 +184,9 @@ class CalculationEngineComprehensiveTests(TestCase):
         # P1 = 12 -> digits [1, 2] -> '<<' (Homogeneous)
         # P2 = 16 -> digits [1, 6] -> '<>' (Mixed)
         # Pattern points: Homogeneous vs Mixed -> 1 pt
-        # Vertical: |1 - 1| = 0 pts
+        # Vertical: first digits are 1 and 1 -> |1 - 1| = 0 pts
         # Stage 6 Total = 1 + 0 = 1 pt
-        res = stage_6([2, 1, 6, 1, 2], [2, 1, 8, 3, 2], main_val=1, calc_val=1)
+        res = stage_6([2, 1, 6, 1, 2], [2, 1, 8, 3, 2])
         self.assertEqual(res["P1"]["total"], 12)
         self.assertEqual(res["P1"]["digits"], [1, 2])
         self.assertEqual(res["P1"]["pattern"], "<<")
@@ -197,12 +197,35 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertEqual(res["vertical"]["points"], 0)
         self.assertEqual(res["points"], 1)
 
-        # Test single digit padding in P1: e.g. sum = 4 -> digits [0, 4] -> '<<'
-        res_single = stage_6([0, 0, 1, 1, 2], [5, 5, 5, 5, 5], main_val=5, calc_val=2)
+        # User Screenshot Example: P1=20 -> [2, 0], P2=18 -> [1, 8]
+        # Vertical: |2 - 1| = 1 point!
+        # Pattern: '<<' vs '<>' -> 1 point
+        # Stage 6 Total = 1 + 1 = 2 pts
+        res_user_screen = stage_6([3, 8, 2, 3, 4], [7, 4, 2, 3, 2])
+        self.assertEqual(res_user_screen["P1"]["total"], 20)
+        self.assertEqual(res_user_screen["P1"]["digits"], [2, 0])
+        self.assertEqual(res_user_screen["P2"]["total"], 18)
+        self.assertEqual(res_user_screen["P2"]["digits"], [1, 8])
+        self.assertEqual(res_user_screen["vertical"]["points"], 1)
+        self.assertEqual(res_user_screen["points"], 2)
+
+        # User Example 2: P1 digits [3, 1] vs P2 digits [1, 1] -> 3 - 1 = 2 points
+        res_3_1 = stage_6([6, 6, 6, 6, 7], [2, 2, 2, 2, 3])
+        self.assertEqual(res_3_1["P1"]["digits"], [3, 1])
+        self.assertEqual(res_3_1["P2"]["digits"], [1, 1])
+        self.assertEqual(res_3_1["vertical"]["points"], 2)
+
+        # User Example 3: P1 digits [2, 1] vs P2 digits [2, 2] -> 2 - 2 = 0 points
+        res_2_2 = stage_6([4, 4, 4, 4, 5], [4, 4, 4, 5, 5])
+        self.assertEqual(res_2_2["P1"]["digits"], [2, 1])
+        self.assertEqual(res_2_2["P2"]["digits"], [2, 2])
+        self.assertEqual(res_2_2["vertical"]["points"], 0)
+
+        # Test single digit padding in P1: e.g. sum = 4 -> digits [0, 4] vs P2 digits [2, 5] -> |0 - 2| = 2
+        res_single = stage_6([0, 0, 1, 1, 2], [5, 5, 5, 5, 5])
         self.assertEqual(res_single["P1"]["total"], 4)
         self.assertEqual(res_single["P1"]["digits"], [0, 4])
-        self.assertEqual(res_single["vertical"]["points"], 3)
-        self.assertEqual(res_single["points"], res_single["pattern_points"] + 3)
+        self.assertEqual(res_single["vertical"]["points"], 2)
 
     # 9. Stage 7 average divisibility by 2, including odd sums
     def test_stage_7_average_divisibility_by_2(self):

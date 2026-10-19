@@ -686,11 +686,13 @@ $(document).ready(function () {
         <div class="audit-block">
           <div class="audit-block-header">Part C: Vertical Calculation</div>
           <div class="calc-group">
-            <div class="calc-label">Formula: |Main value - Calculation value|</div>
-            <div class="calc-formula">${vert.formula}</div>
+            <div class="calc-label">Vertical Values (First Digits of P1 & P2)</div>
+            <div class="calc-formula">P1 [${p1.digits.join(', ')}] &rarr; ${vert.v1 !== undefined ? vert.v1 : vert.main_val}</div>
+            <div class="calc-formula">P2 [${p2.digits.join(', ')}] &rarr; ${vert.v2 !== undefined ? vert.v2 : vert.calc_val}</div>
+            <div class="calc-formula">Formula: |${vert.v1 !== undefined ? vert.v1 : vert.main_val} - ${vert.v2 !== undefined ? vert.v2 : vert.calc_val}| = ${vert.points}</div>
             <div class="calc-meta-row">
-              <span class="calc-meta-item"><strong>Result:</strong> Absolute Difference = ${vert.points}</span>
-              <span class="calc-meta-item"><strong>Points awarded:</strong> ${vert.points} pts</span>
+              <span class="calc-meta-item"><strong>Result:</strong> Vertical Difference = ${vert.points}</span>
+              <span class="calc-meta-item"><strong>Points awarded:</strong> ${vert.points} pt${vert.points === 1 ? '' : 's'}</span>
             </div>
           </div>
         </div>
