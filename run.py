@@ -1,7 +1,7 @@
 """
 Universal Cross-Platform Application Launcher for Calculation Engine & AI Agent.
 Works seamlessly in any environment, auto-detects virtual environments (.venv or venv),
-cleans up stale ports, applies migrations, launches browser, and starts the server.
+auto-locates project folder, cleans up stale ports, applies migrations, launches browser, and starts the server.
 """
 import sys
 import os
@@ -10,26 +10,46 @@ import subprocess
 import webbrowser
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
-os.chdir(BASE_DIR)
+
+def find_project_dir() -> Path:
+    current = Path(__file__).resolve().parent
+    if (current / "manage.py").is_file():
+        return current
+    if (current / "Calculation-Agent" / "manage.py").is_file():
+        return current / "Calculation-Agent"
+
+    home = Path.home()
+    candidates = [
+        Path("C:/calculation/Calculation-Agent"),
+        Path("C:/Calculation-Agent"),
+        home / "Calculation-Agent",
+        home / "Desktop" / "Calculation-Agent",
+        home / "OneDrive" / "Desktop" / "Calculation-Agent",
+        home / "Downloads" / "Calculation-Agent",
+        home / "Documents" / "Calculation-Agent",
+        home / "OneDrive" / "Documents" / "Calculation-Agent",
+    ]
+    for c in candidates:
+        if (c / "manage.py").is_file():
+            return c
+    return current
 
 
-def find_python() -> str:
+def find_python(project_dir: Path) -> str:
     """Finds the best Python executable prioritizing virtual environments (.venv, venv)."""
     candidates = [
-        BASE_DIR / ".venv" / "Scripts" / "python.exe",
-        BASE_DIR / "venv" / "Scripts" / "python.exe",
-        BASE_DIR / "env" / "Scripts" / "python.exe",
-        BASE_DIR / ".venv" / "bin" / "python",
-        BASE_DIR / "venv" / "bin" / "python",
-        BASE_DIR.parent / ".venv" / "Scripts" / "python.exe",
-        BASE_DIR.parent / "venv" / "Scripts" / "python.exe",
+        project_dir / ".venv" / "Scripts" / "python.exe",
+        project_dir / "venv" / "Scripts" / "python.exe",
+        project_dir / "env" / "Scripts" / "python.exe",
+        project_dir.parent / ".venv" / "Scripts" / "python.exe",
+        project_dir.parent / "venv" / "Scripts" / "python.exe",
+        project_dir / ".venv" / "bin" / "python",
+        project_dir / "venv" / "bin" / "python",
     ]
     for c in candidates:
         if c.is_file():
             return str(c)
 
-    # If current sys.executable is inside a venv, use it
     if hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix):
         return sys.executable
 
@@ -56,7 +76,16 @@ def main():
     print("=" * 60)
     print()
 
-    py_exe = find_python()
+    project_dir = find_project_dir()
+    os.chdir(project_dir)
+    manage_py = project_dir / "manage.py"
+
+    if not manage_py.is_file():
+        print(f"[ERROR] manage.py not found in {project_dir}")
+        sys.exit(1)
+
+    py_exe = find_python(project_dir)
+    print(f"[INFO] Project Directory: {project_dir}")
     print(f"[INFO] Using Python environment: {py_exe}")
 
     # 1. Clean port 8005
@@ -66,7 +95,7 @@ def main():
     # 2. Run migrations
     print("[INFO] Verifying database migrations...")
     try:
-        subprocess.run([py_exe, "manage.py", "migrate", "--noinput"], check=False)
+        subprocess.run([py_exe, str(manage_py), "migrate", "--noinput"], check=False)
     except Exception as e:
         print(f"[WARNING] Migration check skipped: {e}")
 
@@ -91,7 +120,7 @@ def main():
     print("[INFO] Press Ctrl + C to stop the server.\n")
 
     try:
-        subprocess.run([py_exe, "manage.py", "runserver", "0.0.0.0:8005"])
+        subprocess.run([py_exe, str(manage_py), "runserver", "0.0.0.0:8005"])
     except KeyboardInterrupt:
         print("\n[INFO] Server stopped gracefully.")
 
