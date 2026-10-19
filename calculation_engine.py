@@ -115,23 +115,28 @@ def stage_1(main_vals: List[int], calc_vals: List[int]) -> Dict[str, Any]:
 
         comb_pts = s1_pts + s2_pts
 
-        # Ratio checks
+        # Ratio checks: S1 / S2 checked for divisibility by 2, 3, or self
         is_self_match = (s2 != 0 and s1 == s2)
+        is_both_div_2 = (s2 != 0 and (s1 % 2 == 0) and (s2 % 2 == 0))
+        is_both_div_3 = (s2 != 0 and (s1 % 3 == 0) and (s2 % 3 == 0))
         is_int_div = (s2 != 0 and s1 % s2 == 0)
         q = (s1 // s2) if is_int_div else None
-        is_div_2 = (q is not None and q % 2 == 0)
-        is_div_3 = (q is not None and q % 3 == 0)
+        is_q_div_2 = (q is not None and q % 2 == 0)
+        is_q_div_3 = (q is not None and q % 3 == 0)
+
+        is_div_2 = is_both_div_2 or is_q_div_2
+        is_div_3 = is_both_div_3 or is_q_div_3
 
         ratio_qualifies = is_self_match or is_div_2 or is_div_3
         ratio_pts = 1 if ratio_qualifies else 0
 
         ratio_reasons = []
         if is_self_match:
-            ratio_reasons.append(f"Self/mutual match ({s1} = {s2})")
+            ratio_reasons.append(f"Self divisible ({s1} = {s2})")
         if is_div_2:
-            ratio_reasons.append(f"Quotient {q} % 2 = 0 (Divisible by 2)")
+            ratio_reasons.append("Divisible by 2")
         if is_div_3:
-            ratio_reasons.append(f"Quotient {q} % 3 = 0 (Divisible by 3)")
+            ratio_reasons.append("Divisible by 3")
 
         if s2 == 0:
             ratio_audit = f"Ratio = {s1}/0 → Undefined (division by zero) ✗ (+0 points)"
@@ -140,7 +145,7 @@ def stage_1(main_vals: List[int], calc_vals: List[int]) -> Dict[str, Any]:
             ratio_audit = f"Ratio = {s1}/{s2}{q_str} → {', '.join(ratio_reasons)} ✓ (+1 point)"
         else:
             q_str = f" = {q}" if q is not None else ""
-            ratio_audit = f"Ratio = {s1}/{s2}{q_str} → Divisibility/self-match checks → No match ✗ (+0 points)"
+            ratio_audit = f"Ratio = {s1}/{s2}{q_str} → Not divisible by 2, 3, or self ✗ (+0 points)"
 
         file_pts = comb_pts + ratio_pts
 

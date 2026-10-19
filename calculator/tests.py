@@ -44,7 +44,6 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertEqual(res1["main"]["ratio_points"], 0)
 
         # Example 2: 8/4 -> divisible by 2; qualifying condition (1 pt)
-        # S1 = 2+2+4 = 8, S2 = 4+0+0 = 4 -> 8/4 = 2 (divisible by 2)
         res2 = stage_1([2, 2, 4, 0, 0], [1, 1, 2, 1, 1])
         self.assertEqual(res2["main"]["s1"], 8)
         self.assertEqual(res2["main"]["s2"], 4)
@@ -53,7 +52,6 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertEqual(res2["main"]["ratio_points"], 1)
 
         # Example 3: 9/3 -> divisible by 3; qualifying condition (1 pt)
-        # S1 = 3+3+3 = 9, S2 = 3+0+0 = 3 -> 9/3 = 3 (divisible by 3)
         res3 = stage_1([3, 3, 3, 0, 0], [1, 1, 2, 1, 1])
         self.assertEqual(res3["main"]["s1"], 9)
         self.assertEqual(res3["main"]["s2"], 3)
@@ -61,8 +59,7 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertTrue(res3["main"]["ratio_qualifies"])
         self.assertEqual(res3["main"]["ratio_points"], 1)
 
-        # Example 4: 4/4 -> self/mutual match; qualifying condition (1 pt)
-        # S1 = 1+1+2 = 4, S2 = 2+1+1 = 4 -> 4/4
+        # Example 4: 4/4 -> self divisible; qualifying condition (1 pt)
         res4 = stage_1([1, 1, 2, 1, 1], [1, 1, 2, 1, 1])
         self.assertEqual(res4["main"]["s1"], 4)
         self.assertEqual(res4["main"]["s2"], 4)
@@ -70,15 +67,63 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertTrue(res4["main"]["ratio_qualifies"])
         self.assertEqual(res4["main"]["ratio_points"], 1)
 
-        # Multiple conditions: 12/2 = 6 -> both div by 2 and div by 3 -> exactly 1 point
-        # S1 = 4+4+4 = 12, S2 = 4+(-1)+(-1) wait, positive: S1=4+4+4=12, S2=2+0+0=2 (c can be 2? wait, if c=2, S1=a+b+2)
-        # Let a=5, b=5, c=2 -> S1=12. Let d=0, e=0 -> S2=2+0+0=2.
-        res5 = stage_1([5, 5, 2, 0, 0], [1, 1, 2, 1, 1])
-        self.assertEqual(res5["main"]["s1"], 12)
-        self.assertEqual(res5["main"]["s2"], 2)
-        self.assertTrue(res5["main"]["is_div_2"])
-        self.assertTrue(res5["main"]["is_div_3"])
-        self.assertEqual(res5["main"]["ratio_points"], 1)  # Only 1 point, no double-counting
+        # User Example: 21/18 -> both divisible by 3 -> 1 point!
+        # [7, 5, 9, 8, 1] -> S1 = 7+5+9 = 21, S2 = 9+8+1 = 18
+        res_21_18 = stage_1([7, 5, 9, 8, 1], [7, 5, 9, 8, 1])
+        self.assertEqual(res_21_18["main"]["s1"], 21)
+        self.assertEqual(res_21_18["main"]["s2"], 18)
+        self.assertTrue(res_21_18["main"]["is_div_3"])
+        self.assertTrue(res_21_18["main"]["ratio_qualifies"])
+        self.assertEqual(res_21_18["main"]["ratio_points"], 1)
+        # Check that it applies to calc file too!
+        self.assertEqual(res_21_18["calc"]["s1"], 21)
+        self.assertEqual(res_21_18["calc"]["s2"], 18)
+        self.assertTrue(res_21_18["calc"]["is_div_3"])
+        self.assertEqual(res_21_18["calc"]["ratio_points"], 1)
+
+        # User Example: 2/4 -> divisible by 2 -> 1 point
+        # [0, 1, 1, 1, 2] -> S1 = 0+1+1 = 2, S2 = 1+1+2 = 4
+        res_2_4 = stage_1([0, 1, 1, 1, 2], [1, 1, 2, 1, 1])
+        self.assertEqual(res_2_4["main"]["s1"], 2)
+        self.assertEqual(res_2_4["main"]["s2"], 4)
+        self.assertTrue(res_2_4["main"]["is_div_2"])
+        self.assertEqual(res_2_4["main"]["ratio_points"], 1)
+
+        # User Example: 2/2 -> self divisible -> 1 point
+        # [0, 1, 1, 0, 1] -> S1 = 0+1+1 = 2, S2 = 1+0+1 = 2
+        res_2_2 = stage_1([0, 1, 1, 0, 1], [1, 1, 2, 1, 1])
+        self.assertTrue(res_2_2["main"]["is_self_match"])
+        self.assertEqual(res_2_2["main"]["ratio_points"], 1)
+
+        # User Example: 4/9 -> not divisible by 2 or 3 or self -> 0 points
+        # [1, 2, 1, 4, 4] -> S1 = 1+2+1 = 4, S2 = 1+4+4 = 9
+        res_4_9 = stage_1([1, 2, 1, 4, 4], [1, 1, 2, 1, 1])
+        self.assertEqual(res_4_9["main"]["s1"], 4)
+        self.assertEqual(res_4_9["main"]["s2"], 9)
+        self.assertFalse(res_4_9["main"]["ratio_qualifies"])
+        self.assertEqual(res_4_9["main"]["ratio_points"], 0)
+
+        # User Example: 5/4 -> not divisible by 2 or 3 or self -> 0 points
+        # [2, 2, 1, 1, 2] -> S1 = 2+2+1 = 5, S2 = 1+1+2 = 4
+        res_5_4 = stage_1([2, 2, 1, 1, 2], [1, 1, 2, 1, 1])
+        self.assertEqual(res_5_4["main"]["s1"], 5)
+        self.assertEqual(res_5_4["main"]["s2"], 4)
+        self.assertFalse(res_5_4["main"]["ratio_qualifies"])
+        self.assertEqual(res_5_4["main"]["ratio_points"], 0)
+
+        # User Example: 10/10 -> self divisible -> 1 point
+        # [3, 4, 3, 3, 4] -> S1 = 3+4+3 = 10, S2 = 3+3+4 = 10
+        res_10_10 = stage_1([3, 4, 3, 3, 4], [1, 1, 2, 1, 1])
+        self.assertTrue(res_10_10["main"]["is_self_match"])
+        self.assertEqual(res_10_10["main"]["ratio_points"], 1)
+
+        # User Example: 9/27 -> divisible by 3 -> 1 point
+        # [3, 3, 3, 12, 12] -> S1 = 3+3+3 = 9, S2 = 3+12+12 = 27
+        res_9_27 = stage_1([3, 3, 3, 12, 12], [1, 1, 2, 1, 1])
+        self.assertEqual(res_9_27["main"]["s1"], 9)
+        self.assertEqual(res_9_27["main"]["s2"], 27)
+        self.assertTrue(res_9_27["main"]["is_div_3"])
+        self.assertEqual(res_9_27["main"]["ratio_points"], 1)
 
     # 3. Stage 1 combined subtotal
     def test_stage_1_combined_subtotal(self):
