@@ -581,6 +581,29 @@ def calculate_original_value_adjustment(val: Optional[float]) -> Optional[Dict[s
     }
 
 
+def calculate_original_value_fixed_adjustment(val: Optional[float]) -> Optional[Dict[str, Any]]:
+    """Calculates fixed ±2.55 results for an original value."""
+    if val is None:
+        return None
+    try:
+        val = float(val)
+    except (ValueError, TypeError):
+        return None
+
+    adjustment = 2.55
+    addition_result = round(val + adjustment, 2)
+    subtraction_result = round(val - adjustment, 2)
+
+    return {
+        "original_value": val,
+        "adjustment": adjustment,
+        "addition_result": addition_result,
+        "subtraction_result": subtraction_result,
+        "formula_add": f"{val} + {adjustment:.2f} = {addition_result:.2f}",
+        "formula_sub": f"{val} - {adjustment:.2f} = {subtraction_result:.2f}"
+    }
+
+
 # =====================================================================
 # STAGE 8 — Final Total Equation
 # =====================================================================
@@ -593,7 +616,7 @@ def run_all_stages(main_input: Union[str, List[str], List[int]],
                    stage7_calc: Optional[int] = None) -> Dict[str, Any]:
     """
     Orchestrates Stages 1 through 7 and computes Stage 8 Final Total Equation.
-    Also calculates Original Value 0.85% addition and subtraction results if provided.
+    Also calculates Original Value 0.85% and fixed ±2.55 results if provided.
     
     Supports stage7_main and stage7_calc arguments for backward compatibility
     (which map to the vertical calculation in Stage 6).
@@ -623,6 +646,7 @@ def run_all_stages(main_input: Union[str, List[str], List[int]],
     stages = [s1, s2, s3, s4, s5, s6, s7]
     final_total = sum(s["points"] for s in stages)
     orig_adj = calculate_original_value_adjustment(original_value)
+    orig_fixed_adj = calculate_original_value_fixed_adjustment(original_value)
 
     # Stage 8 Equation string
     stage8_equation = " + ".join(str(s["points"]) for s in stages) + f" = {final_total} POINTS"
@@ -633,7 +657,8 @@ def run_all_stages(main_input: Union[str, List[str], List[int]],
         "stages": stages,
         "final_total": final_total,
         "stage8_equation": stage8_equation,
-        "original_value_adj": orig_adj
+        "original_value_adj": orig_adj,
+        "original_value_fixed_adj": orig_fixed_adj
     }
 
 
@@ -665,7 +690,7 @@ def main():
     parser.add_argument("--calc-file", help="Path to calculation file")
     parser.add_argument("--s6-main", "--s7-main", dest="s6_main", type=int, default=1, help="Main value for vertical calculation (default: 1)")
     parser.add_argument("--s6-calc", "--s7-calc", dest="s6_calc", type=int, default=1, help="Calculation value for vertical calculation (default: 1)")
-    parser.add_argument("--orig-val", type=float, default=None, help="Original value for 0.85% adjustment")
+    parser.add_argument("--orig-val", type=float, default=None, help="Original value for 0.85% and fixed ±2.55 adjustments")
     args = parser.parse_args()
 
     if args.main_file and args.calc_file:
@@ -682,4 +707,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -12,7 +12,8 @@ from calculation_engine import (
     stage_7,
     run_all_stages,
     parse_source_lines,
-    calculate_original_value_adjustment
+    calculate_original_value_adjustment,
+    calculate_original_value_fixed_adjustment
 )
 
 
@@ -268,6 +269,16 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertEqual(adj["formula_add"], "149.96 + 1.27 = 151.23")
         self.assertEqual(adj["formula_sub"], "149.96 - 1.27 = 148.69")
 
+    def test_original_value_fixed_255_adjustment(self):
+        adj = calculate_original_value_fixed_adjustment(148.78)
+        self.assertIsNotNone(adj)
+        self.assertEqual(adj["original_value"], 148.78)
+        self.assertEqual(adj["adjustment"], 2.55)
+        self.assertEqual(adj["addition_result"], 151.33)
+        self.assertEqual(adj["subtraction_result"], 146.23)
+        self.assertEqual(adj["formula_add"], "148.78 + 2.55 = 151.33")
+        self.assertEqual(adj["formula_sub"], "148.78 - 2.55 = 146.23")
+
     # 12. Input parsing, formats, normalization and validation
     def test_input_parsing_formats(self):
         # Spaced delimiter format from user: '2 _ 7   2 _ 7   2 _ 6   2 _ 3   1 _ 1'
@@ -315,6 +326,7 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertIn("stage8_equation", data["data"])
         self.assertIsNotNone(data["data"]["original_value_adj"])
         self.assertEqual(data["data"]["original_value_adj"]["addition_result"], 151.23)
+        self.assertEqual(data["data"]["original_value_fixed_adj"]["addition_result"], 152.51)
 
         # Missing input raises 400
         bad_payload = {"main_input": "1_2 1_2 1_2 1_2 1_2"}

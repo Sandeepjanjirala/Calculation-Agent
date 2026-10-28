@@ -115,9 +115,9 @@
         <div class="input-card" style="margin-top: 1.25rem;">
           <div class="card-header-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
             <label class="input-label" for="original_value_input">
-              🏷️ Original Value (0.85% Adjustment Calculator)
+              🏷️ Original Value (0.85% and ±2.55 Adjustment Calculator)
             </label>
-            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Step 1: 0.85% Adjustment | Step 2: Addition (+) | Step 3: Subtraction (-)</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Calculate 0.85% and fixed ±2.55 adjustments</span>
           </div>
           <div style="margin-top: 0.25rem;">
             <input type="number" step="any" id="original_value_input" class="code-textarea" style="height: 48px; padding: 0.65rem 1rem; font-size: 1.05rem; font-weight: 600;" value="">
@@ -184,6 +184,47 @@
             <div id="ans-subtraction-formula" class="adj-card-formula">
               -
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Original Value Fixed ±2.55 Results -->
+      <div id="orig-val-fixed-results-card" class="adj-panel">
+        <div class="adj-panel-header">
+          <div class="adj-header-info">
+            <span class="adj-tag">Fixed ±2.55 Adjustment</span>
+            <h2 class="adj-title">Fixed ±2.55 Results</h2>
+          </div>
+          <div class="adj-meta-pill">
+            <div class="adj-meta-col">
+              <span class="adj-meta-label">Original Value</span>
+              <strong id="orig-fixed-val-display" class="adj-meta-val">-</strong>
+            </div>
+            <div class="adj-meta-divider"></div>
+            <div class="adj-meta-col">
+              <span class="adj-meta-label">Adjustment</span>
+              <strong id="orig-fixed-adj-display" class="adj-meta-val">±2.55</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="adj-grid">
+          <div class="adj-card adj-card-higher" id="adj-fixed-card-add">
+            <div class="adj-card-header">
+              <span class="adj-card-title">Answer 1 &mdash; Addition Result (+2.55)</span>
+              <span id="adj-fixed-badge-add" class="adj-status-badge badge-higher">&uarr; Higher Value</span>
+            </div>
+            <div id="ans-fixed-addition-val" class="adj-card-number val-higher">-</div>
+            <div id="ans-fixed-addition-formula" class="adj-card-formula">-</div>
+          </div>
+
+          <div class="adj-card adj-card-lower" id="adj-fixed-card-sub">
+            <div class="adj-card-header">
+              <span class="adj-card-title">Answer 2 &mdash; Subtraction Result (-2.55)</span>
+              <span id="adj-fixed-badge-sub" class="adj-status-badge badge-lower">&darr; Lower Value</span>
+            </div>
+            <div id="ans-fixed-subtraction-val" class="adj-card-number val-lower">-</div>
+            <div id="ans-fixed-subtraction-formula" class="adj-card-formula">-</div>
           </div>
         </div>
       </div>

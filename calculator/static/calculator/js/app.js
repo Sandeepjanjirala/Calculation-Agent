@@ -290,6 +290,23 @@ $(document).ready(function () {
       $("#orig-val-results-card").hide();
     }
 
+    if (data.original_value_fixed_adj) {
+      const adj = data.original_value_fixed_adj;
+      const origValNum = adj.original_value;
+      const addVal = adj.addition_result;
+      const subVal = adj.subtraction_result;
+
+      $("#orig-fixed-val-display").text(origValNum);
+      $("#orig-fixed-adj-display").text(`±${adj.adjustment.toFixed(2)}`);
+      $("#ans-fixed-addition-val").text(addVal.toFixed(2));
+      $("#ans-fixed-addition-formula").text(adj.formula_add);
+      $("#ans-fixed-subtraction-val").text(subVal.toFixed(2));
+      $("#ans-fixed-subtraction-formula").text(adj.formula_sub);
+      $("#orig-val-fixed-results-card").fadeIn(200);
+    } else {
+      $("#orig-val-fixed-results-card").hide();
+    }
+
     // Extracted values
     $("#extracted-main-vals").text(`a=${mv[0]}, b=${mv[1]}, c=${mv[2]}, d=${mv[3]}, e=${mv[4]}`);
     $("#extracted-calc-vals").text(`a=${cv[0]}, b=${cv[1]}, c=${cv[2]}, d=${cv[3]}, e=${cv[4]}`);
@@ -764,6 +781,11 @@ $(document).ready(function () {
       txt += `Original Value Adjustment:         ${data.original_value_adj.original_value} (0.85% = ±${data.original_value_adj.adjustment})\n`;
       txt += `  - Addition Result:               ${data.original_value_adj.formula_add}\n`;
       txt += `  - Subtraction Result:            ${data.original_value_adj.formula_sub}\n`;
+    }
+    if (data.original_value_fixed_adj) {
+      txt += `Original Value Fixed Adjustment:   ${data.original_value_fixed_adj.original_value} (±${data.original_value_fixed_adj.adjustment.toFixed(2)})\n`;
+      txt += `  - Addition Result:               ${data.original_value_fixed_adj.formula_add}\n`;
+      txt += `  - Subtraction Result:            ${data.original_value_fixed_adj.formula_sub}\n`;
     }
     txt += `------------------------------------------------------------------------\n`;
     data.stages.forEach(function (s) {
