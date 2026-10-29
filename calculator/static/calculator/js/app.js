@@ -209,6 +209,23 @@ $(document).ready(function () {
     }, 30);
   });
 
+  // Filter input to only allow numbers and decimal point, and prevent wheel scrolling up/down
+  $("#original_value_input").on("input", function () {
+    let val = $(this).val();
+    val = val.replace(/[^0-9.]/g, '');
+    const parts = val.split('.');
+    if (parts.length > 2) {
+      val = parts[0] + '.' + parts.slice(1).join('');
+    }
+    if ($(this).val() !== val) {
+      $(this).val(val);
+    }
+  });
+
+  $("#original_value_input").on("wheel", function (e) {
+    e.preventDefault();
+  });
+
   $("#original_value_input").on("input keyup change paste", function () {
     scheduleAutoCalculate(150);
   });
@@ -297,7 +314,7 @@ $(document).ready(function () {
       const subVal = adj.subtraction_result;
 
       $("#orig-fixed-val-display").text(origValNum);
-      $("#orig-fixed-adj-display").text(`±${adj.adjustment.toFixed(2)}`);
+      $("#orig-fixed-adj-display").text(adj.adjustment.toFixed(2));
       $("#ans-fixed-addition-val").text(addVal.toFixed(2));
       $("#ans-fixed-addition-formula").text(adj.formula_add);
       $("#ans-fixed-subtraction-val").text(subVal.toFixed(2));

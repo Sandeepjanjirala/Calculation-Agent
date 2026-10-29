@@ -582,7 +582,17 @@ def calculate_original_value_adjustment(val: Optional[float]) -> Optional[Dict[s
 
 
 def calculate_original_value_fixed_adjustment(val: Optional[float]) -> Optional[Dict[str, Any]]:
-    """Calculates fixed ±2.55 results for an original value."""
+    """
+    Calculates 2.55% adjustment results for an original value:
+    Step 1 — Calculate 2.55% of the original value:
+        val * (2.55 / 100) = val * 0.0255
+        Round to 2 decimal places.
+        e.g., 143.14 * 0.0255 = 3.65007 -> 3.65
+    Step 2 — Addition Result = round(val + adjustment, 2) (Higher Value -> RED)
+        e.g., 143.14 + 3.65 = 146.79
+    Step 3 — Subtraction Result = round(val - adjustment, 2) (Lower Value -> GREEN)
+        e.g., 143.14 - 3.65 = 139.49
+    """
     if val is None:
         return None
     try:
@@ -590,12 +600,13 @@ def calculate_original_value_fixed_adjustment(val: Optional[float]) -> Optional[
     except (ValueError, TypeError):
         return None
 
-    adjustment = 2.55
+    adjustment = round(val * 0.0255, 2)
     addition_result = round(val + adjustment, 2)
     subtraction_result = round(val - adjustment, 2)
 
     return {
         "original_value": val,
+        "percentage": 2.55,
         "adjustment": adjustment,
         "addition_result": addition_result,
         "subtraction_result": subtraction_result,

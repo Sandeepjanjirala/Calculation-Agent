@@ -270,14 +270,18 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertEqual(adj["formula_sub"], "149.96 - 1.27 = 148.69")
 
     def test_original_value_fixed_255_adjustment(self):
-        adj = calculate_original_value_fixed_adjustment(148.78)
+        # User example: 143.14 * (2.55/100) = 143.14 * 0.0255 = 3.65
+        # Addition: 143.14 + 3.65 = 146.79 (Red)
+        # Subtraction: 143.14 - 3.65 = 139.49 (Green)
+        adj = calculate_original_value_fixed_adjustment(143.14)
         self.assertIsNotNone(adj)
-        self.assertEqual(adj["original_value"], 148.78)
-        self.assertEqual(adj["adjustment"], 2.55)
-        self.assertEqual(adj["addition_result"], 151.33)
-        self.assertEqual(adj["subtraction_result"], 146.23)
-        self.assertEqual(adj["formula_add"], "148.78 + 2.55 = 151.33")
-        self.assertEqual(adj["formula_sub"], "148.78 - 2.55 = 146.23")
+        self.assertEqual(adj["original_value"], 143.14)
+        self.assertEqual(adj["percentage"], 2.55)
+        self.assertEqual(adj["adjustment"], 3.65)
+        self.assertEqual(adj["addition_result"], 146.79)
+        self.assertEqual(adj["subtraction_result"], 139.49)
+        self.assertEqual(adj["formula_add"], "143.14 + 3.65 = 146.79")
+        self.assertEqual(adj["formula_sub"], "143.14 - 3.65 = 139.49")
 
     # 12. Input parsing, formats, normalization and validation
     def test_input_parsing_formats(self):
@@ -326,7 +330,7 @@ class CalculationEngineComprehensiveTests(TestCase):
         self.assertIn("stage8_equation", data["data"])
         self.assertIsNotNone(data["data"]["original_value_adj"])
         self.assertEqual(data["data"]["original_value_adj"]["addition_result"], 151.23)
-        self.assertEqual(data["data"]["original_value_fixed_adj"]["addition_result"], 152.51)
+        self.assertEqual(data["data"]["original_value_fixed_adj"]["addition_result"], 153.78)
 
         # Missing input raises 400
         bad_payload = {"main_input": "1_2 1_2 1_2 1_2 1_2"}
